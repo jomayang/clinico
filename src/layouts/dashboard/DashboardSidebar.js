@@ -86,23 +86,19 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
 
       <Box sx={{ px: 2.5, pb: 3, mt: 10 }}>
         <Stack alignItems="center" spacing={3} sx={{ pt: 5, borderRadius: 2, position: 'relative' }}>
-          <Box
+          {/* <Box
             component="img"
-            src="/static/illustrations/illustration_avatar.png"
-            sx={{ width: 100, position: 'absolute', top: -50 }}
-          />
+            src="/static/illustrations/doctor.png"
+            sx={{ width: 100, position: 'absolute', top: -50, opacity: 0.8 }}
+          /> */}
 
-          <Box sx={{ textAlign: 'center' }}>
-            <Typography gutterBottom variant="h6">
-              Get more?
-            </Typography>
-            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-              From only $69
-            </Typography>
-          </Box>
-
-          <Button href="https://material-ui.com/store/items/minimal-dashboard/" target="_blank" variant="contained">
-            Upgrade to Pro
+          <Button
+            href="https://material-ui.com/store/items/minimal-dashboard/"
+            size="large"
+            target="_blank"
+            variant="contained"
+          >
+            Nouveau Patient
           </Button>
         </Stack>
       </Box>

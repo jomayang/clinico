@@ -4,12 +4,17 @@ import DashboardLayout from './layouts/dashboard';
 import LogoOnlyLayout from './layouts/LogoOnlyLayout';
 //
 import Blog from './pages/Blog';
-import User from './pages/User';
 import Login from './pages/Login';
 import NotFound from './pages/Page404';
 import Register from './pages/Register';
 import Products from './pages/Products';
 import DashboardApp from './pages/DashboardApp';
+import Patient from './pages/Patient';
+import AddPatient from './pages/AddPatient';
+import PatientDetails from './pages/PatientDetails';
+import Appointments from './pages/Appointments';
+import Payments from './pages/Payments';
+import Stats from './pages/Stats';
 
 // ----------------------------------------------------------------------
 
@@ -20,9 +25,14 @@ export default function Router() {
       element: <DashboardLayout />,
       children: [
         { path: 'app', element: <DashboardApp /> },
-        { path: 'user', element: <User /> },
+        { path: 'patient', element: <Patient /> },
+        { path: 'add-patient', element: <AddPatient /> },
         { path: 'products', element: <Products /> },
+        { path: 'payment', element: <Payments /> },
         { path: 'blog', element: <Blog /> },
+        { path: 'stats', element: <Stats /> },
+        { path: 'calendar', element: <Appointments /> },
+        { path: 'patient/:id', element: <PatientDetails /> },
       ],
     },
     {
