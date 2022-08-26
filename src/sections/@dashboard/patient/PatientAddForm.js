@@ -181,9 +181,15 @@ export default function PatientAddForm() {
             <TextField name="adresse" label="Adresse" value={address} onChange={(e) => setAddress(e.target.value)} />
           </FormControl>
 
-          <Button fullWidth size="large" onClick={createPatient} variant="contained">
-            Ajouter Patient
-          </Button>
+          {firstName === '' || lastName === '' || dateOfBirth === '' || gender === '' || insurance === '' ? (
+            <Button fullWidth size="large" variant="contained" disabled>
+              Ajouter Patient
+            </Button>
+          ) : (
+            <Button fullWidth size="large" onClick={createPatient} variant="contained">
+              Ajouter Patient
+            </Button>
+          )}
         </Stack>
         <Snackbar
           open={open}

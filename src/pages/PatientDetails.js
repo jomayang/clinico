@@ -39,12 +39,15 @@ import {
   MedicalInformationOutlined,
 } from '@mui/icons-material';
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
+import { PDFDownloadLink } from '@react-pdf/renderer';
 import Page from '../components/Page';
 import Scrollbar from '../components/Scrollbar';
 import Iconify from '../components/Iconify';
 import FollowupForm from '../sections/@dashboard/patient/FollowupForm';
 import AppointmentAddForm from '../sections/@dashboard/patient/AppointmentAddForm';
 import { db } from '../firebase-config';
+import DocSection from '../components/Patient/DocSection';
+
 // import { UserListHead, UserListToolbar, UserMoreMenu } from '../sections/@dashboard/user';
 const rows = [
   {
@@ -101,9 +104,9 @@ export default function PatientDetails() {
   const [patient, setPatient] = useState();
   const patientsCollectionRef = collection(db, 'patients');
   const [followups, setFollowups] = useState([]);
+  const [cleanCredit, setCleanCredit] = useState(0);
   const [patientCredit, setPatientCredit] = useState(0);
   const [patientPayed, setPatientPayed] = useState(0);
-  const [cleanCredit, setCleanCredit] = useState(0);
   const { id } = useParams();
   const patientRef = doc(db, 'patients', id);
   const followupsRef = collection(db, 'patients', id, 'folder');
@@ -152,6 +155,13 @@ export default function PatientDetails() {
     getFollowups();
   }, []);
 
+  const handleClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+
+    setOpen(false);
+  };
   const handleCleanCredit = async (fid, credit, fpayed, fcredit) => {
     const newCredit = fcredit - credit;
     const newPayed = +fpayed + credit;
@@ -175,14 +185,6 @@ export default function PatientDetails() {
     }
   };
 
-  const handleClose = (event, reason) => {
-    if (reason === 'clickaway') {
-      return;
-    }
-
-    setOpen(false);
-  };
-
   return (
     <Page title="Ajouter Patient">
       <Container>
@@ -191,7 +193,7 @@ export default function PatientDetails() {
             {patient && `${patient.firstName} ${patient.lastName}`}
           </Typography>
 
-          <Typography sx={{ color: 'text.secondary', mb: 5 }}>Free forever. No credit card needed.</Typography>
+          <Typography sx={{ color: 'text.secondary', mb: 5 }}>Details de patient.</Typography>
         </Stack>
         <Grid container spacing={2}>
           <Grid item sm={8}>
@@ -201,21 +203,34 @@ export default function PatientDetails() {
               </Scrollbar>
             </Card>
             <Stack spacing={2} sx={{ marginTop: '1rem' }}>
-              {followups.map((f, i) => (
-                <Card key={i} sx={{ padding: '2rem 2rem 1rem 2rem' }}>
+              {followups.map((followup, i) => (
+                <Card sx={{ padding: '2rem 2rem 1rem 2rem' }} key={i}>
                   <Box sx={{ marginBottom: '10px' }}>
                     <Typography variant="h6">Motif: </Typography>
-                    <Typography>{f.pattern}</Typography>
+                    <Typography>{followup.pattern}</Typography>
                   </Box>
                   <Box sx={{ marginBottom: '10px' }}>
                     <Typography variant="h6">Examen Clinique: </Typography>
-                    <Typography>{f.clinicalExam}</Typography>
+                    <Typography>{followup.clinicalExam}</Typography>
                   </Box>
                   <Box sx={{ marginBottom: '10px' }}>
                     <Typography variant="h6">Examen Complementaire: </Typography>
-                    <Typography>{f.complementaryExam}</Typography>
+                    <Typography>{followup.complementaryExam}</Typography>
                   </Box>
-                  {f.credit && f.credit !== 0 && (
+                  {followup.diagnosisType && (
+                    <Box sx={{ marginBottom: '10px' }}>
+                      <Typography variant="h6">Type de diagnostique: </Typography>
+                      <Typography>{followup.diagnosisType}</Typography>
+                    </Box>
+                  )}
+                  {followup.diagnosisDetails && (
+                    <Box sx={{ marginBottom: '10px' }}>
+                      <Typography variant="h6">Details de diagnostique: </Typography>
+                      <Typography>{followup.diagnosisDetails}</Typography>
+                    </Box>
+                  )}
+
+                  {followup.credit && followup.credit !== 0 && (
                     <>
                       <hr />
                       <Stack spacing={2} sx={{ marginTop: '1rem' }}>
@@ -227,11 +242,11 @@ export default function PatientDetails() {
                             onChange={(e) => setCleanCredit(+e.target.value)}
                           />
                         </FormControl>
-                        <Typography>Crédit: {f.credit} DA</Typography>
+                        <Typography>Crédit: {followup.credit} DA</Typography>
                         <Button
                           size="small"
                           color="success"
-                          onClick={() => handleCleanCredit(f.id, cleanCredit, f.payed, f.credit)}
+                          onClick={() => handleCleanCredit(followup.id, cleanCredit, followup.payed, followup.credit)}
                           variant="contained"
                         >
                           Effacer
@@ -243,42 +258,17 @@ export default function PatientDetails() {
                     direction="row"
                     sx={{ borderTop: '1px solid #eee', paddingTop: '1rem', justifyContent: 'space-between' }}
                   >
-                    <Stack direction={'row'} spacing={2}>
-                      <Tooltip title="Ordonnance">
-                        <IconButton color="primary">
-                          <ArticleOutlined />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Bilan">
-                        <IconButton color="primary">
-                          <DescriptionOutlined />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Orientation">
-                        <IconButton color="primary">
-                          <BadgeOutlined />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Certificat d'arret travail">
-                        <IconButton color="primary">
-                          <WorkOutline />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Certificat medical">
-                        <IconButton color="primary">
-                          <MedicalInformationOutlined />
-                        </IconButton>
-                      </Tooltip>
-                    </Stack>
                     <Box sx={{ justifyContent: 'end', textAlign: 'right' }}>
                       <Typography variant="caption" sx={{ color: 'text.disabled', display: 'block' }}>
                         Date de consultation:
                       </Typography>
-                      <Typography>{f.consultationDate.toDate().toDateString()}</Typography>
+                      <Typography>{followup.consultationDate.toDate().toDateString()}</Typography>
                     </Box>
                   </Stack>
                 </Card>
               ))}
+
+              {/* )} */}
             </Stack>
           </Grid>
 
@@ -299,6 +289,13 @@ export default function PatientDetails() {
                         Prenom:
                       </TableCell>
                       <TableCell align="right">{patient.firstName}</TableCell>
+                    </TableRow>
+
+                    <TableRow sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                      <TableCell component="th" scope="row" sx={{ fontWeight: 'bold', textTransform: 'capitalize' }}>
+                        Diagnostique:
+                      </TableCell>
+                      <TableCell align="right">{patient.diagnosis.join(', ')}</TableCell>
                     </TableRow>
                     <TableRow sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
                       <TableCell component="th" scope="row" sx={{ fontWeight: 'bold', textTransform: 'capitalize' }}>
@@ -331,10 +328,16 @@ export default function PatientDetails() {
                       <TableCell component="th" scope="row" sx={{ fontWeight: 'bold', textTransform: 'capitalize' }}>
                         crédit:
                       </TableCell>
-                      <TableCell align="right">{patientCredit} DA</TableCell>
+                      <TableCell align="right" sx={patientCredit > 0 ? { color: '#FF4842', fontWeight: 'bold' } : {}}>
+                        {patientCredit} DA
+                      </TableCell>
                     </TableRow>
                   </TableBody>
                 </Table>
+                <hr />
+                <Box>
+                  <DocSection id={id} patient={patient} />
+                </Box>
               </Card>
               <Card sx={{ padding: '2rem', marginTop: '1rem' }}>
                 <Typography variant="h4" sx={{ marginBottom: '1rem' }}>

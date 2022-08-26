@@ -28,7 +28,7 @@ import {
   FormControlLabel,
   Snackbar,
 } from '@mui/material';
-import { addDoc, collection, serverTimestamp } from '@firebase/firestore';
+import { addDoc, collection, serverTimestamp, setDoc, doc, updateDoc } from '@firebase/firestore';
 import { LoadingButton } from '@mui/lab';
 // components
 import Iconify from '../../../components/Iconify';
@@ -45,7 +45,7 @@ const CONSULTATION_PRICE = 1500;
 const EEG_PRICE = 12000;
 const EMG_PRICE = 8000;
 
-export default function FollowupForm({ id, firstName, lastName }) {
+export default function FollowupForm({ id, firstName, lastName, diagnosisList }) {
   const navigate = useNavigate();
 
   const [pattern, setPattern] = useState(''); // motif
@@ -57,7 +57,10 @@ export default function FollowupForm({ id, firstName, lastName }) {
   const [credit, setCredit] = useState(0);
   const [payed, setPayed] = useState(0);
   const [total, setTotal] = useState(0);
+  const [isNewDiagnosis, setIsNewDiagnosis] = useState(false);
 
+  const [diagnosisType, setDiagnosisType] = useState('');
+  const [diagnosisDetails, setDiagnosisDetails] = useState('');
   const [open, setOpen] = useState(false);
   const [isError, setIsError] = useState(false);
   const [feedback, setFeedback] = useState('');
@@ -94,18 +97,32 @@ export default function FollowupForm({ id, firstName, lastName }) {
 
   const createFollowup = async () => {
     try {
-      await addDoc(collection(db, 'patients', id, 'folder'), {
-        pattern,
-        clinicalExam,
-        complementaryExam,
-        EEG,
-        EMG,
-        images,
-        consultationDate: serverTimestamp(),
-        payed,
-        credit,
-        // date: ServerTimestamp()
-      });
+      const followupObject = isNewDiagnosis
+        ? {
+            pattern,
+            clinicalExam,
+            complementaryExam,
+            EEG,
+            EMG,
+            images,
+            consultationDate: serverTimestamp(),
+            payed,
+            credit,
+            diagnosisType,
+            diagnosisDetails,
+          }
+        : {
+            pattern,
+            clinicalExam,
+            complementaryExam,
+            EEG,
+            EMG,
+            images,
+            consultationDate: serverTimestamp(),
+            payed,
+            credit,
+          };
+      await addDoc(collection(db, 'patients', id, 'folder'), followupObject);
       await addDoc(collection(db, 'payments'), {
         firstName,
         lastName,
@@ -113,11 +130,20 @@ export default function FollowupForm({ id, firstName, lastName }) {
         payed,
         credit,
       });
+      console.log(diagnosisList);
+      console.log([...diagnosisList, diagnosisType]);
+      if (isNewDiagnosis) {
+        const diagnosisArray = [...diagnosisList, diagnosisType];
+        await updateDoc(doc(db, 'patients', id), {
+          diagnosis: diagnosisArray,
+        });
+      }
       setPayed(0);
       setCredit(0);
       setFeedback('Followup added!');
       setOpen(true);
     } catch (error) {
+      console.log(error);
       setFeedback('a Problem accured when adding Followup!');
       setIsError(true);
     }
@@ -201,6 +227,42 @@ export default function FollowupForm({ id, firstName, lastName }) {
               label="EMG"
             />
           </FormGroup>
+          <FormGroup>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={isNewDiagnosis}
+                  onChange={(e) => setIsNewDiagnosis(e.target.checked)}
+                  inputProps={{ 'aria-label': 'controlled' }}
+                />
+              }
+              label="Nouveau Diagnostique"
+            />
+          </FormGroup>
+          {isNewDiagnosis && (
+            <>
+              <FormControl>
+                <TextField
+                  name="diagnosis-type"
+                  label="Type de diagnostique"
+                  value={diagnosisType}
+                  onChange={(e) => setDiagnosisType(e.target.value)}
+                />
+              </FormControl>
+
+              <FormControl>
+                <TextField
+                  name="diagnosis-details"
+                  multiline
+                  rows={4}
+                  label="Details de diagnostique"
+                  aria-label="maximum height"
+                  value={diagnosisDetails}
+                  onChange={(e) => setDiagnosisDetails(e.target.value)}
+                />
+              </FormControl>
+            </>
+          )}
           <hr />
           <FormControl>
             <TextField name="payed" label="payé" value={payed} onChange={(e) => setPayed(+e.target.value)} />
