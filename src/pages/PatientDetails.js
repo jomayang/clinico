@@ -290,13 +290,15 @@ export default function PatientDetails() {
                       </TableCell>
                       <TableCell align="right">{patient.firstName}</TableCell>
                     </TableRow>
+                    {patient.diagnosis && (
+                      <TableRow sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                        <TableCell component="th" scope="row" sx={{ fontWeight: 'bold', textTransform: 'capitalize' }}>
+                          Diagnostique:
+                        </TableCell>
+                        <TableCell align="right">{patient.diagnosis.join(', ')}</TableCell>
+                      </TableRow>
+                    )}
 
-                    <TableRow sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                      <TableCell component="th" scope="row" sx={{ fontWeight: 'bold', textTransform: 'capitalize' }}>
-                        Diagnostique:
-                      </TableCell>
-                      <TableCell align="right">{patient.diagnosis.join(', ')}</TableCell>
-                    </TableRow>
                     <TableRow sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
                       <TableCell component="th" scope="row" sx={{ fontWeight: 'bold', textTransform: 'capitalize' }}>
                         Age:
