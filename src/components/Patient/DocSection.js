@@ -174,6 +174,26 @@ function DocSection({ id, patient }) {
     setModalType(type);
   };
 
+  const handleAddTreatment = async () => {
+    try {
+      console.log(ordonance);
+      const today = new Date();
+      const dd = String(today.getDate()).padStart(2, '0');
+      const mm = String(today.getMonth() + 1).padStart(2, '0');
+      const yyyy = today.getFullYear();
+
+      const date = `${dd}/${mm}/${yyyy}`;
+      await addDoc(collection(db, 'patients', id, 'treatments'), { date, treatment: ordonance });
+
+      setFeedback('Treatment added!');
+
+      setOpen(true);
+    } catch (err) {
+      setFeedback('a Problem accured when adding Treatment!');
+      setIsError(true);
+    }
+  };
+
   const renderModalContent = () => {
     switch (modalType) {
       case 'ordonance':
@@ -228,32 +248,36 @@ function DocSection({ id, patient }) {
                   <AddCircleIcon />
                 </IconButton>
               </Box>
-
-              <PDFDownloadLink
-                document={
-                  <Ordonance
-                    firstName={patient.firstName}
-                    lastName={patient.lastName}
-                    age={age}
-                    gender={patient.gender}
-                    address={patient.address}
-                    ordonance={ordonance}
-                  />
-                }
-                fileName="ordonance"
-              >
-                {({ loading, error }) =>
-                  loading ? (
-                    <Button size="large" variant="contained">
-                      chargement...
-                    </Button>
-                  ) : (
-                    <Button size="large" variant="contained">
-                      Telecharger
-                    </Button>
-                  )
-                }
-              </PDFDownloadLink>
+              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+                <Button size="large" color="warning" variant="contained" onClick={handleAddTreatment}>
+                  Save
+                </Button>
+                <PDFDownloadLink
+                  document={
+                    <Ordonance
+                      firstName={patient.firstName}
+                      lastName={patient.lastName}
+                      age={age}
+                      gender={patient.gender}
+                      address={patient.address}
+                      ordonance={ordonance}
+                    />
+                  }
+                  fileName="ordonance"
+                >
+                  {({ loading, error }) =>
+                    loading ? (
+                      <Button size="large" variant="contained">
+                        chargement...
+                      </Button>
+                    ) : (
+                      <Button size="large" variant="contained">
+                        Telecharger
+                      </Button>
+                    )
+                  }
+                </PDFDownloadLink>
+              </Stack>
             </Stack>
           </>
         );
@@ -588,6 +612,16 @@ function DocSection({ id, patient }) {
           }}
         >
           {renderModalContent()}
+          <Snackbar
+            open={open}
+            autoHideDuration={6000}
+            onClose={handleClose}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+          >
+            <Alert onClose={handleClose} severity={isError ? 'error' : 'success'} sx={{ width: '100%' }}>
+              {feedback}
+            </Alert>
+          </Snackbar>
         </Box>
       </Modal>
       <Stack
