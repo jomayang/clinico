@@ -1,4 +1,5 @@
 import {
+  Autocomplete,
   Box,
   Button,
   Card,
@@ -19,7 +20,7 @@ import {
 } from '@mui/material';
 import { useState, forwardRef, useEffect } from 'react';
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
-import { doc, collection, addDoc, updateDoc, serverTimestamp } from '@firebase/firestore';
+import { doc, collection, addDoc, updateDoc, getDocs, serverTimestamp } from '@firebase/firestore';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import {
   ArticleOutlined,
@@ -73,7 +74,7 @@ function DocSection({ id, patient }) {
   const [feedback, setFeedback] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [age, setAge] = useState(0);
-
+  const [drugList, setDrugList] = useState([]);
   useEffect(() => setAge(Math.floor((new Date() - patient.dateOfBirth.toDate().getTime()) / 3.15576e10)), []);
   // Orientation
   const [orientationDetails, setOrientationDetails] = useState('');
@@ -86,11 +87,10 @@ function DocSection({ id, patient }) {
   const [arretTravailFrom, setArretTravailFrom] = useState('');
   const [arretTravailTo, setArretTravailTo] = useState('');
   const [arretTravailSortie, setArretTravailSortie] = useState(false);
-
   // bilan
-  const [bilan, setBilan] = useState([{ svp: '' }]);
+  const [bilan, setBilan] = useState([{ svp: '', isOther: false }]);
 
-  const addBilanField = () => setBilan([...bilan, { svp: '' }]);
+  const addBilanField = () => setBilan([...bilan, { svp: '', isOther: false }]);
 
   const removeBilanField = (index) => {
     const rows = [...bilan];
@@ -104,6 +104,57 @@ function DocSection({ id, patient }) {
     setBilan(list);
     console.log(bilan);
   };
+  useEffect(() => {
+    const getPatients = async () => {
+      const data = await getDocs(collection(db, 'drugs'));
+      console.log(data.docs);
+      setDrugList(data.docs.map((doc) => doc.data().drugDesc));
+    };
+    getPatients();
+  }, []);
+  // ordonance
+  const [ordonance, setOrdonance] = useState([{ drugName: '', rate: '', duration: '' }]);
+  const addOrdonanceField = () => setOrdonance([...ordonance, { drugName: '', rate: '', duration: '' }]);
+  const removeOrdonanceField = (index) => {
+    const rows = [...ordonance];
+    rows.splice(index, 1);
+    setOrdonance(rows);
+  };
+  const handleOrdonanceChange = (index, e) => {
+    const { name, value } = e.target;
+    // console.log(e);
+    const list = [...ordonance];
+    list[index][name] = value;
+    setOrdonance(list);
+    console.log(e);
+  };
+  const handleDrugNameChange = (index, e, value) => {
+    // console.log(e);
+    const { nVal } = e.target;
+    console.log(e);
+    const list = [...ordonance];
+    const name = 'drugName';
+    list[index][name] = value;
+    setOrdonance(list);
+  };
+
+  const handleSVPChange = (index, e, value) => {
+    // console.log(e);
+    const { nVal } = e.target;
+    console.log(e);
+    const list = [...bilan];
+    const name = 'svp';
+    list[index][name] = value;
+    setBilan(list);
+  };
+
+  const handleTypeChange = (index, e) => {
+    const { checked, name } = e.target;
+    console.log(e);
+    const list = [...bilan];
+    list[index][name] = checked;
+    setBilan(list);
+  };
 
   const handleClose = (event, reason) => {
     if (reason === 'clickaway') {
@@ -111,6 +162,10 @@ function DocSection({ id, patient }) {
     }
 
     setOpen(false);
+  };
+  const sampleModal = (e, v) => {
+    console.log('event: ', e, 'value: ', v);
+    console.log(ordonance);
   };
   let render;
   const handleModalClose = () => setModalOpen(false);
@@ -124,15 +179,82 @@ function DocSection({ id, patient }) {
       case 'ordonance':
         return (
           <>
-            <Typography id="modal-modal-title" variant="h6" component="h2">
+            <Typography id="modal-modal-title" variant="h4" style={{ textAlign: 'center' }} component="h2">
               Ordonance
             </Typography>
-            <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-              Duis mollis, est non commodo luctus, nisi erat porttitor ligula.
-            </Typography>
-            <PDFDownloadLink document={<Ordonance />} fileName="ordonance">
-              {({ loading, error }) => (loading ? <button>loading...</button> : <button>download</button>)}
-            </PDFDownloadLink>
+            <Stack spacing={3} style={{ marginTop: '1rem' }}>
+              {ordonance.map((data, index) => {
+                const { drugName, duration, rate } = data;
+                return (
+                  <Stack key={index} direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ marginTop: '.4rem' }}>
+                    <FormControl fullWidth>
+                      <Autocomplete
+                        disablePortal
+                        value={drugName}
+                        onChange={(e, value) => handleDrugNameChange(index, e, value)}
+                        options={drugList}
+                        // sx={{ width: 300 }}
+                        defaultValue={''}
+                        renderInput={(params) => <TextField name="drugName" {...params} label="Médicament" />}
+                      />
+                    </FormControl>
+                    <FormControl>
+                      <TextField
+                        name="duration"
+                        label="Duration"
+                        value={duration}
+                        onChange={(e) => handleOrdonanceChange(index, e)}
+                      />
+                    </FormControl>
+                    <FormControl>
+                      <TextField
+                        name="rate"
+                        label="Rate"
+                        value={rate}
+                        onChange={(e) => handleOrdonanceChange(index, e)}
+                      />
+                    </FormControl>
+
+                    {ordonance.length !== 1 && (
+                      <IconButton aria-label="delete" size="large" onClick={removeOrdonanceField}>
+                        <DeleteIcon />
+                      </IconButton>
+                    )}
+                  </Stack>
+                );
+              })}
+              <Box>
+                <IconButton aria-label="add" size="large" onClick={addOrdonanceField}>
+                  <AddCircleIcon />
+                </IconButton>
+              </Box>
+
+              <PDFDownloadLink
+                document={
+                  <Ordonance
+                    firstName={patient.firstName}
+                    lastName={patient.lastName}
+                    age={age}
+                    gender={patient.gender}
+                    address={patient.address}
+                    ordonance={ordonance}
+                  />
+                }
+                fileName="ordonance"
+              >
+                {({ loading, error }) =>
+                  loading ? (
+                    <Button size="large" variant="contained">
+                      chargement...
+                    </Button>
+                  ) : (
+                    <Button size="large" variant="contained">
+                      Telecharger
+                    </Button>
+                  )
+                }
+              </PDFDownloadLink>
+            </Stack>
           </>
         );
       case 'arretTravail':
@@ -217,7 +339,7 @@ function DocSection({ id, patient }) {
             </Typography>
             <Stack spacing={3} style={{ marginTop: '1rem' }}>
               {bilan.map((data, index) => {
-                const { svp } = data;
+                const { svp, isOther } = data;
                 return (
                   <Stack key={index} direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ marginTop: '.4rem' }}>
                     <FormControl fullWidth>
@@ -227,7 +349,41 @@ function DocSection({ id, patient }) {
                         aria-label="maximum height"
                         onChange={(e) => handleBilanChange(index, e)}
                       /> */}
-                      <Select
+                      {/* <FormControl fullWidth> */}
+                      {isOther ? (
+                        <TextField
+                          name="svp"
+                          label="Bilan SVP"
+                          value={svp}
+                          onChange={(e) => handleBilanChange(index, e)}
+                        />
+                      ) : (
+                        <Autocomplete
+                          disablePortal
+                          value={svp}
+                          onChange={(e, value) => handleSVPChange(index, e, value)}
+                          options={BilanList}
+                          // sx={{ width: 300 }}
+                          defaultValue={''}
+                          renderInput={(params) => <TextField name="svp" {...params} label="Bilan" />}
+                        />
+                      )}
+                    </FormControl>
+                    <FormGroup>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={isOther}
+                            onChange={(e) => handleTypeChange(index, e)}
+                            name="isOther"
+                            inputProps={{ 'aria-label': 'controlled' }}
+                          />
+                        }
+                        label="Autre"
+                      />
+                    </FormGroup>
+                    {/* </FormControl> */}
+                    {/* <Select
                         defaultValue="FNS"
                         name="svp"
                         value={svp}
@@ -239,8 +395,7 @@ function DocSection({ id, patient }) {
                             {item}
                           </MenuItem>
                         ))}
-                      </Select>
-                    </FormControl>
+                      </Select> */}
 
                     {bilan.length !== 1 && (
                       <IconButton aria-label="delete" size="large" onClick={removeBilanField}>
@@ -302,7 +457,7 @@ function DocSection({ id, patient }) {
                     details={orientationDetails}
                   />
                 }
-                fileName="ordonance"
+                fileName="orientation"
               >
                 {({ loading, error }) =>
                   loading ? (
@@ -366,12 +521,45 @@ function DocSection({ id, patient }) {
       default:
         return (
           <>
-            <Typography id="modal-modal-title" variant="h6" component="h2">
+            <Typography id="modal-modal-title" variant="h4" style={{ textAlign: 'center' }} component="h2">
               Ordonance
             </Typography>
-            <Typography id="modal-modal-description" sx={{ mt: 2 }}>
-              Duis mollis, est non commodo luctus, nisi erat porttitor ligula.
-            </Typography>
+            <Stack spacing={3} style={{ marginTop: '1rem' }}>
+              <FormControl>
+                <TextField
+                  name="certif-details"
+                  multiline
+                  rows={4}
+                  label="Details de cértificat"
+                  aria-label="maximum height"
+                  value={certifMedicalDetails}
+                  onChange={(e) => setCertifMedicalDetails(e.target.value)}
+                />
+              </FormControl>
+              <PDFDownloadLink
+                document={
+                  <CertificatMedical
+                    firstName={patient.firstName}
+                    lastName={patient.lastName}
+                    dateOfBirth={patient.dateOfBirth}
+                    details={certifMedicalDetails}
+                  />
+                }
+                fileName="certif-medical"
+              >
+                {({ loading, error }) =>
+                  loading ? (
+                    <Button size="large" variant="contained">
+                      chargement...
+                    </Button>
+                  ) : (
+                    <Button size="large" variant="contained">
+                      Telecharger
+                    </Button>
+                  )
+                }
+              </PDFDownloadLink>
+            </Stack>
           </>
         );
     }
@@ -402,7 +590,12 @@ function DocSection({ id, patient }) {
           {renderModalContent()}
         </Box>
       </Modal>
-      <Stack direction={'row'} spacing={2}>
+      <Stack
+        direction={'row'}
+        spacing={3}
+        justifyContent="center"
+        sx={{ marginTop: '1rem', paddingTop: '1rem', borderTop: '1px solid #eee' }}
+      >
         <Tooltip title="Ordonnance">
           <IconButton color="primary" size="small" onClick={() => handleModalOpen('ordonance')}>
             <ArticleOutlined fontSize="small" />

@@ -1,21 +1,30 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Page, Text, Image, View, Document, StyleSheet } from '@react-pdf/renderer';
 import Template from './ordonance.png';
 
-function Ordonance() {
+function Ordonance({ firstName, lastName, gender, address, age, ordonance }) {
+  const [date, setDate] = useState('');
+  useEffect(() => {
+    const today = new Date();
+    const dd = String(today.getDate()).padStart(2, '0');
+    const mm = String(today.getMonth() + 1).padStart(2, '0');
+    const yyyy = today.getFullYear();
+
+    setDate(`${dd}/${mm}/${yyyy}`);
+  }, []);
   return (
     <Document>
       <Page size="A4">
         <Image style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} src={Template} />
-        <Text style={{ position: 'absolute', top: 161, left: 452, fontSize: 13, fontWeight: 'bold' }}>02/11/2022</Text>
+        <Text style={{ position: 'absolute', top: 161, left: 452, fontSize: 13, fontWeight: 'bold' }}>{date}</Text>
 
-        <Text style={{ position: 'absolute', top: 190, left: 160, fontSize: 13, fontWeight: 'bold' }}>Ghazi Mehdi</Text>
-        <Text style={{ position: 'absolute', top: 190, left: 500, fontSize: 13, fontWeight: 'bold' }}>18 Ans</Text>
-
-        <Text style={{ position: 'absolute', top: 217, left: 100, fontSize: 13, fontWeight: 'bold' }}>Male</Text>
-        <Text style={{ position: 'absolute', top: 217, left: 260, fontSize: 13, fontWeight: 'bold' }}>
-          Cite freres ferrad n70
+        <Text style={{ position: 'absolute', top: 190, left: 160, fontSize: 13, fontWeight: 'bold' }}>
+          {lastName} {firstName}
         </Text>
+        <Text style={{ position: 'absolute', top: 190, left: 500, fontSize: 13, fontWeight: 'bold' }}>{age} Ans</Text>
+
+        <Text style={{ position: 'absolute', top: 217, left: 100, fontSize: 13, fontWeight: 'bold' }}>{gender}</Text>
+        <Text style={{ position: 'absolute', top: 217, left: 260, fontSize: 13, fontWeight: 'bold' }}>{address}</Text>
         <View
           style={{
             position: 'absolute',
@@ -24,13 +33,13 @@ function Ordonance() {
             right: 72,
           }}
         >
-          {[1, 2, 3, 4].map((item, i) => (
+          {ordonance.map((item, i) => (
             <View style={{ top: i * 50 }} key={i}>
               <View>
-                <Text style={{ position: 'absolute', left: 0, fontSize: 16 }}>Item number</Text>
-                <Text style={{ position: 'absolute', right: 0, fontSize: 16 }}>5 jours</Text>
+                <Text style={{ position: 'absolute', left: 0, fontSize: 16 }}>{item.drugName}</Text>
+                <Text style={{ position: 'absolute', right: 0, fontSize: 16 }}>{item.duration}</Text>
               </View>
-              <Text style={{ position: 'absolute', top: 20, left: 50, fontSize: 16 }}>5/j</Text>
+              <Text style={{ position: 'absolute', top: 20, left: 50, fontSize: 16 }}>{item.rate}</Text>
             </View>
           ))}
 

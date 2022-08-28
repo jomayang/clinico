@@ -18,7 +18,7 @@ import {
   TableContainer,
   TablePagination,
 } from '@mui/material';
-import { collection, getDocs } from '@firebase/firestore';
+import { collection, getDocs, addDoc } from '@firebase/firestore';
 // components
 import Page from '../components/Page';
 import Label from '../components/Label';
@@ -157,7 +157,6 @@ export default function Patient() {
             Nouveau Patient
           </Button>
         </Stack>
-
         <Card>
           <PatientListToolbar numSelected={selected.length} filterName={filterName} onFilterName={handleFilterByName} />
 

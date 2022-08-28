@@ -334,7 +334,7 @@ export default function PatientDetails() {
                     </TableRow>
                   </TableBody>
                 </Table>
-                <hr />
+                {/* <hr /> */}
                 <Box>
                   <DocSection id={id} patient={patient} />
                 </Box>
