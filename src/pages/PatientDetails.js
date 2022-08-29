@@ -29,6 +29,7 @@ import {
   FormControl,
   TextField,
   Snackbar,
+  Link,
 } from '@mui/material';
 // components
 import {
@@ -47,6 +48,7 @@ import FollowupForm from '../sections/@dashboard/patient/FollowupForm';
 import AppointmentAddForm from '../sections/@dashboard/patient/AppointmentAddForm';
 import { db } from '../firebase-config';
 import DocSection from '../components/Patient/DocSection';
+import Ordonance from '../components/documents/Ordonance';
 
 // import { UserListHead, UserListToolbar, UserMoreMenu } from '../sections/@dashboard/user';
 const rows = [
@@ -112,6 +114,8 @@ export default function PatientDetails() {
   const followupsRef = collection(db, 'patients', id, 'folder');
   const q = query(followupsRef, orderBy('consultationDate', 'desc'));
 
+  const [age, setAge] = useState(0);
+
   const [open, setOpen] = useState(false);
   const [isError, setIsError] = useState(false);
   const [feedback, setFeedback] = useState('');
@@ -120,7 +124,7 @@ export default function PatientDetails() {
     const getPatients = async () => {
       const data = await getDoc(patientRef);
       setPatient(data.data());
-
+      setAge(Math.floor((new Date() - data.data().dateOfBirth.toDate().getTime()) / 3.15576e10));
       // setPatients(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
     };
     getPatients();
@@ -206,34 +210,61 @@ export default function PatientDetails() {
               {followups.map((followup, i) => (
                 <Card sx={{ padding: '2rem 2rem 1rem 2rem' }} key={i}>
                   <Box sx={{ marginBottom: '10px' }}>
-                    <Typography variant="h6">Motif: </Typography>
-                    <Typography>{followup.pattern}</Typography>
+                    <Typography sx={{ fontSize: '14px', fontWeight: 'bold' }}>Motif: </Typography>
+                    <Typography sx={{ fontSize: '14px', lineHeight: 1.5, color: '#878f97' }}>
+                      {followup.pattern}
+                    </Typography>
                   </Box>
                   <Box sx={{ marginBottom: '10px' }}>
-                    <Typography variant="h6">Examen Clinique: </Typography>
-                    <Typography>{followup.clinicalExam}</Typography>
+                    <Typography sx={{ fontSize: '14px', fontWeight: 'bold' }}>Examen Clinique: </Typography>
+                    <Typography sx={{ fontSize: '14px', lineHeight: 1.5, color: '#878f97' }}>
+                      {followup.clinicalExam}
+                    </Typography>
                   </Box>
                   <Box sx={{ marginBottom: '10px' }}>
-                    <Typography variant="h6">Examen Complementaire: </Typography>
-                    <Typography>{followup.complementaryExam}</Typography>
+                    <Typography sx={{ fontSize: '14px', fontWeight: 'bold' }}>Examen Complementaire: </Typography>
+                    <Typography sx={{ fontSize: '14px', lineHeight: 1.5, color: '#878f97' }}>
+                      {followup.complementaryExam}
+                    </Typography>
                   </Box>
                   {followup.diagnosisType && (
                     <Box sx={{ marginBottom: '10px' }}>
-                      <Typography variant="h6">Type de diagnostique: </Typography>
-                      <Typography>{followup.diagnosisType}</Typography>
+                      <Typography sx={{ fontSize: '14px', fontWeight: 'bold' }}>Type de diagnostique: </Typography>
+                      <Typography sx={{ fontSize: '14px', lineHeight: 1.5, color: '#878f97' }}>
+                        {followup.diagnosisType}
+                      </Typography>
+                    </Box>
+                  )}
+                  {followup.treatments && (
+                    <Box sx={{ marginBottom: '10px' }}>
+                      <Typography sx={{ fontSize: '14px', fontWeight: 'bold' }}>Traitement: </Typography>
+                      <Typography sx={{ fontSize: '14px', lineHeight: 1.5, color: '#878f97' }}>
+                        {followup.treatments.map((drug) => drug.drugName).join(', ')}
+                      </Typography>
+                    </Box>
+                  )}
+                  {followup.images && (
+                    <Box sx={{ marginBottom: '10px' }}>
+                      <Typography sx={{ fontSize: '14px', fontWeight: 'bold' }}>Images: </Typography>
+                      {followup.images.map((image, i) => (
+                        <Link key={i} href={image} underline="hover">
+                          <Typography sx={{ fontSize: '14px' }}>Image {i}</Typography>
+                        </Link>
+                      ))}
                     </Box>
                   )}
                   {followup.diagnosisDetails && (
                     <Box sx={{ marginBottom: '10px' }}>
-                      <Typography variant="h6">Details de diagnostique: </Typography>
-                      <Typography>{followup.diagnosisDetails}</Typography>
+                      <Typography sx={{ fontSize: '14px', fontWeight: 'bold' }}>Details de diagnostique: </Typography>
+                      <Typography sx={{ fontSize: '14px', lineHeight: 1.5, color: '#878f97' }}>
+                        {followup.diagnosisDetails}
+                      </Typography>
                     </Box>
                   )}
 
-                  {followup.credit && followup.credit !== 0 && (
+                  {followup.credit && followup.credit !== 0 ? (
                     <>
-                      <hr />
-                      <Stack spacing={2} sx={{ marginTop: '1rem' }}>
+                      <Stack spacing={2} sx={{ paddingTop: '1rem', borderTop: '1px solid #eee' }}>
                         <FormControl fullWidth>
                           <TextField
                             name="credit"
@@ -245,19 +276,48 @@ export default function PatientDetails() {
                         <Typography>Crédit: {followup.credit} DA</Typography>
                         <Button
                           size="small"
-                          color="success"
+                          color="secondary"
                           onClick={() => handleCleanCredit(followup.id, cleanCredit, followup.payed, followup.credit)}
-                          variant="contained"
+                          variant="outlined"
                         >
                           Effacer
                         </Button>
                       </Stack>
                     </>
+                  ) : (
+                    <></>
                   )}
                   <Stack
                     direction="row"
                     sx={{ borderTop: '1px solid #eee', paddingTop: '1rem', justifyContent: 'space-between' }}
                   >
+                    {followup.treatments ? (
+                      <Box sx={{ marginBottom: '10px' }}>
+                        <PDFDownloadLink
+                          document={
+                            <Ordonance
+                              firstName={patient.firstName}
+                              lastName={patient.lastName}
+                              age={age}
+                              gender={patient.gender}
+                              address={patient.address}
+                              ordonance={followup.treatments}
+                            />
+                          }
+                          fileName="ordonance"
+                        >
+                          {({ loading, error }) =>
+                            loading ? (
+                              <Button variant="outlined">chargement...</Button>
+                            ) : (
+                              <Button variant="contained">Ordonance</Button>
+                            )
+                          }
+                        </PDFDownloadLink>
+                      </Box>
+                    ) : (
+                      <div />
+                    )}
                     <Box sx={{ justifyContent: 'end', textAlign: 'right' }}>
                       <Typography variant="caption" sx={{ color: 'text.disabled', display: 'block' }}>
                         Date de consultation:
@@ -298,16 +358,19 @@ export default function PatientDetails() {
                         <TableCell align="right">{patient.diagnosis.join(', ')}</TableCell>
                       </TableRow>
                     )}
+                    {patient.dateOfBirth && (
+                      <TableRow sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                        <TableCell component="th" scope="row" sx={{ fontWeight: 'bold', textTransform: 'capitalize' }}>
+                          Age:
+                        </TableCell>
+                        {/* Math.floor((new Date() - new Date(birthDate).getTime()) / 3.15576e+10) */}
 
-                    <TableRow sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                      <TableCell component="th" scope="row" sx={{ fontWeight: 'bold', textTransform: 'capitalize' }}>
-                        Age:
-                      </TableCell>
-                      {/* Math.floor((new Date() - new Date(birthDate).getTime()) / 3.15576e+10) */}
-                      <TableCell align="right">
-                        {Math.floor((new Date() - patient.dateOfBirth.toDate().getTime()) / 3.15576e10)}
-                      </TableCell>
-                    </TableRow>
+                        <TableCell align="right">
+                          {Math.floor((new Date() - patient.dateOfBirth.toDate().getTime()) / 3.15576e10)}
+                        </TableCell>
+                      </TableRow>
+                    )}
+
                     <TableRow sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
                       <TableCell component="th" scope="row" sx={{ fontWeight: 'bold', textTransform: 'capitalize' }}>
                         Telephone:

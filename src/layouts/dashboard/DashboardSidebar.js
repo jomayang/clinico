@@ -14,6 +14,7 @@ import Scrollbar from '../../components/Scrollbar';
 import NavSection from '../../components/NavSection';
 //
 import navConfig from './NavConfig';
+import Iconify from '../../components/Iconify';
 
 // ----------------------------------------------------------------------
 
@@ -93,10 +94,11 @@ export default function DashboardSidebar({ isOpenSidebar, onCloseSidebar }) {
           /> */}
 
           <Button
-            href="https://material-ui.com/store/items/minimal-dashboard/"
+            href="/dashboard/add-patient"
             size="large"
             target="_blank"
             variant="contained"
+            startIcon={<Iconify icon="eva:plus-fill" />}
           >
             Nouveau Patient
           </Button>

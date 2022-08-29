@@ -6,9 +6,11 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 // @mui
 
+import DeleteIcon from '@mui/icons-material/Delete';
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
 import { DesktopDatePicker } from '@mui/x-date-pickers/DesktopDatePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import AddCircleIcon from '@mui/icons-material/AddCircle';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 // import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import {
@@ -27,8 +29,10 @@ import {
   Typography,
   FormControlLabel,
   Snackbar,
+  Autocomplete,
+  Box,
 } from '@mui/material';
-import { addDoc, collection, serverTimestamp, setDoc, doc, updateDoc } from '@firebase/firestore';
+import { addDoc, collection, serverTimestamp, setDoc, getDocs, doc, updateDoc } from '@firebase/firestore';
 import { LoadingButton } from '@mui/lab';
 // components
 import Iconify from '../../../components/Iconify';
@@ -64,6 +68,17 @@ export default function FollowupForm({ id, firstName, lastName, diagnosisList })
   const [open, setOpen] = useState(false);
   const [isError, setIsError] = useState(false);
   const [feedback, setFeedback] = useState('');
+  const [treatments, setTreatments] = useState([{ drugName: '', rate: '', duration: '' }]);
+
+  const [drugList, setDrugList] = useState([]);
+  useEffect(() => {
+    const getPatients = async () => {
+      const data = await getDocs(collection(db, 'drugs'));
+      console.log(data.docs);
+      setDrugList(data.docs.map((doc) => doc.data().drugDesc));
+    };
+    getPatients();
+  }, []);
 
   const RegisterSchema = Yup.object().shape({
     // nom: Yup.string().required('First name required'),
@@ -97,6 +112,8 @@ export default function FollowupForm({ id, firstName, lastName, diagnosisList })
 
   const createFollowup = async () => {
     try {
+      const imageList = images.replace(' ', '').split(',');
+      console.log(imageList);
       const followupObject = isNewDiagnosis
         ? {
             pattern,
@@ -104,12 +121,13 @@ export default function FollowupForm({ id, firstName, lastName, diagnosisList })
             complementaryExam,
             EEG,
             EMG,
-            images,
+            images: imageList,
             consultationDate: serverTimestamp(),
             payed,
             credit,
             diagnosisType,
             diagnosisDetails,
+            treatments,
           }
         : {
             pattern,
@@ -117,10 +135,11 @@ export default function FollowupForm({ id, firstName, lastName, diagnosisList })
             complementaryExam,
             EEG,
             EMG,
-            images,
+            images: imageList,
             consultationDate: serverTimestamp(),
             payed,
             credit,
+            treatments,
           };
       await addDoc(collection(db, 'patients', id, 'folder'), followupObject);
       await addDoc(collection(db, 'payments'), {
@@ -156,6 +175,31 @@ export default function FollowupForm({ id, firstName, lastName, diagnosisList })
 
     setOpen(false);
   };
+
+  const addTreatmentsField = () => setTreatments([...treatments, { drugName: '', rate: '', duration: '' }]);
+  const removeTreatmentsField = (index) => {
+    const rows = [...treatments];
+    rows.splice(index, 1);
+    setTreatments(rows);
+  };
+  const handleTreatmentsChange = (index, e) => {
+    const { name, value } = e.target;
+    // console.log(e);
+    const list = [...treatments];
+    list[index][name] = value;
+    setTreatments(list);
+    console.log(e);
+  };
+  const handleDrugNameChange = (index, e, value) => {
+    // console.log(e);
+    const { nVal } = e.target;
+    console.log(e);
+    const list = [...treatments];
+    const name = 'drugName';
+    list[index][name] = value;
+    setTreatments(list);
+  };
+
   useEffect(() => {
     let total = CONSULTATION_PRICE;
     if (EEG) {
@@ -200,7 +244,14 @@ export default function FollowupForm({ id, firstName, lastName, diagnosisList })
           </FormControl>
 
           <FormControl>
-            <TextField name="images" label="Images" />
+            <TextField
+              name="images"
+              label="Images"
+              multiline
+              rows={4}
+              value={images}
+              onChange={(e) => setImages(e.target.value)}
+            />
           </FormControl>
           <FormGroup>
             <FormControlLabel
@@ -227,6 +278,53 @@ export default function FollowupForm({ id, firstName, lastName, diagnosisList })
               label="EMG"
             />
           </FormGroup>
+          <Box sx={{ padding: '1rem', borderRadius: 2, border: '1px solid #eee' }}>
+            {treatments.map((data, index) => {
+              const { drugName, duration, rate } = data;
+              return (
+                <Stack key={index} direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ marginBottom: '1rem' }}>
+                  <FormControl fullWidth>
+                    <Autocomplete
+                      disablePortal
+                      value={drugName}
+                      onChange={(e, value) => handleDrugNameChange(index, e, value)}
+                      options={drugList}
+                      // sx={{ width: 300 }}
+                      defaultValue={''}
+                      renderInput={(params) => <TextField name="drugName" {...params} label="Médicament" />}
+                    />
+                  </FormControl>
+                  <FormControl>
+                    <TextField
+                      name="duration"
+                      label="Duration"
+                      value={duration}
+                      onChange={(e) => handleTreatmentsChange(index, e)}
+                    />
+                  </FormControl>
+                  <FormControl>
+                    <TextField
+                      name="rate"
+                      label="Rate"
+                      value={rate}
+                      onChange={(e) => handleTreatmentsChange(index, e)}
+                    />
+                  </FormControl>
+
+                  {treatments.length !== 1 && (
+                    <IconButton aria-label="delete" size="large" onClick={removeTreatmentsField}>
+                      <DeleteIcon />
+                    </IconButton>
+                  )}
+                </Stack>
+              );
+            })}
+            <Box>
+              <IconButton aria-label="add" size="large" onClick={addTreatmentsField}>
+                <AddCircleIcon />
+              </IconButton>
+            </Box>
+          </Box>
           <FormGroup>
             <FormControlLabel
               control={

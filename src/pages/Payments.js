@@ -18,7 +18,7 @@ import {
   TableContainer,
   TablePagination,
 } from '@mui/material';
-import { collection, getDocs } from '@firebase/firestore';
+import { collection, getDocs, orderBy as firebaseOrderBy, query } from '@firebase/firestore';
 // components
 import Page from '../components/Page';
 import Label from '../components/Label';
@@ -87,10 +87,10 @@ export default function Payments() {
 
   const [payments, setPayments] = useState([]);
   const paymentRef = collection(db, 'payments');
-
+  const q = query(paymentRef, firebaseOrderBy('date', 'desc'));
   useEffect(() => {
     const getPayments = async () => {
-      const data = await getDocs(paymentRef);
+      const data = await getDocs(q);
 
       setPayments(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
     };

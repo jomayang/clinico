@@ -153,7 +153,12 @@ export default function Patient() {
           <Typography variant="h4" gutterBottom>
             Patients
           </Typography>
-          <Button variant="contained" component={RouterLink} to="#" startIcon={<Iconify icon="eva:plus-fill" />}>
+          <Button
+            variant="contained"
+            component={RouterLink}
+            to="/dashboard/add-patient"
+            startIcon={<Iconify icon="eva:plus-fill" />}
+          >
             Nouveau Patient
           </Button>
         </Stack>

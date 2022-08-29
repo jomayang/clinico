@@ -18,7 +18,7 @@ import {
   TableContainer,
   TablePagination,
 } from '@mui/material';
-import { collection, getDocs } from '@firebase/firestore';
+import { collection, getDocs, query, orderBy as firebaseOrderBy } from '@firebase/firestore';
 // components
 import Page from '../components/Page';
 import Label from '../components/Label';
@@ -85,10 +85,10 @@ export default function Appointments() {
 
   const [appointments, setAppointments] = useState([]);
   const appointmentRef = collection(db, 'appointments');
-
+  const q = query(appointmentRef, firebaseOrderBy('date', 'asc'));
   useEffect(() => {
     const getAppointments = async () => {
-      const data = await getDocs(appointmentRef);
+      const data = await getDocs(q);
 
       setAppointments(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
     };

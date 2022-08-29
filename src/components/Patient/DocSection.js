@@ -176,14 +176,9 @@ function DocSection({ id, patient }) {
 
   const handleAddTreatment = async () => {
     try {
-      console.log(ordonance);
-      const today = new Date();
-      const dd = String(today.getDate()).padStart(2, '0');
-      const mm = String(today.getMonth() + 1).padStart(2, '0');
-      const yyyy = today.getFullYear();
+      // console.log(ordonance);
 
-      const date = `${dd}/${mm}/${yyyy}`;
-      await addDoc(collection(db, 'patients', id, 'treatments'), { date, treatment: ordonance });
+      await addDoc(collection(db, 'patients', id, 'treatments'), { date: serverTimestamp(), treatment: ordonance });
 
       setFeedback('Treatment added!');
 
