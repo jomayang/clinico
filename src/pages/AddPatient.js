@@ -21,7 +21,7 @@ export default function AddPatient() {
             Nouveau Patient.
           </Typography>
 
-          <Typography sx={{ color: 'text.secondary', mb: 5 }}>Free forever. No credit card needed.</Typography>
+          <Typography sx={{ color: 'text.secondary', mb: 5 }}>Ajouter nouveau patient.</Typography>
         </Stack>
 
         <Card sx={{ padding: '2rem' }}>

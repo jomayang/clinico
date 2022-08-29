@@ -1,5 +1,5 @@
 import * as Yup from 'yup';
-import { useState, forwardRef, useEffect } from 'react';
+import { useState, forwardRef, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 // form
 import { useForm } from 'react-hook-form';
@@ -12,6 +12,7 @@ import { DesktopDatePicker } from '@mui/x-date-pickers/DesktopDatePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import AddCircleIcon from '@mui/icons-material/AddCircle';
 import { LocalizationProvider } from '@mui/x-date-pickers';
+import { Editor } from '@tinymce/tinymce-react';
 // import { DateTimePicker } from '@mui/x-date-pickers/DateTimePicker';
 import {
   Stack,
@@ -69,6 +70,10 @@ export default function FollowupForm({ id, firstName, lastName, diagnosisList })
   const [isError, setIsError] = useState(false);
   const [feedback, setFeedback] = useState('');
   const [treatments, setTreatments] = useState([{ drugName: '', rate: '', duration: '' }]);
+
+  const motifRef = useRef();
+  const complementaryExamRef = useRef();
+  const clinicalExamRef = useRef();
 
   const [drugList, setDrugList] = useState([]);
   useEffect(() => {
@@ -149,8 +154,8 @@ export default function FollowupForm({ id, firstName, lastName, diagnosisList })
         payed,
         credit,
       });
-      console.log(diagnosisList);
-      console.log([...diagnosisList, diagnosisType]);
+      // console.log(diagnosisList);
+      // console.log([...diagnosisList, diagnosisType]);
       if (isNewDiagnosis) {
         const diagnosisArray = [...diagnosisList, diagnosisType];
         await updateDoc(doc(db, 'patients', id), {

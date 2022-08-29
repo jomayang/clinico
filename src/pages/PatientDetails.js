@@ -203,7 +203,14 @@ export default function PatientDetails() {
           <Grid item sm={8}>
             <Card sx={{ padding: '2rem' }}>
               <Scrollbar>
-                {patient && <FollowupForm firstName={patient.firstName} lastName={patient.lastName} id={id} />}
+                {patient && (
+                  <FollowupForm
+                    diagnosisList={patient.diagnosisList || []}
+                    firstName={patient.firstName}
+                    lastName={patient.lastName}
+                    id={id}
+                  />
+                )}
               </Scrollbar>
             </Card>
             <Stack spacing={2} sx={{ marginTop: '1rem' }}>
