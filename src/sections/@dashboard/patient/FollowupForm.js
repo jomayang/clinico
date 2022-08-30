@@ -143,9 +143,9 @@ export default function FollowupForm({ id, firstName, lastName, diagnosisList })
       console.log(imageList);
       const followupObject = isNewDiagnosis
         ? {
-            pattern,
-            clinicalExam,
-            complementaryExam,
+            pattern: motifRef.current.getContent(),
+            clinicalExam: clinicalExamRef.current.getContent(),
+            complementaryExam: complementaryExamRef.current.getContent(),
             EEG,
             EMG,
             consultationDate: serverTimestamp(),
@@ -156,9 +156,9 @@ export default function FollowupForm({ id, firstName, lastName, diagnosisList })
             treatments,
           }
         : {
-            pattern,
-            clinicalExam,
-            complementaryExam,
+            pattern: motifRef.current.getContent(),
+            clinicalExam: clinicalExamRef.current.getContent(),
+            complementaryExam: complementaryExamRef.current.getContent(),
             EEG,
             EMG,
             consultationDate: serverTimestamp(),
@@ -244,11 +244,43 @@ export default function FollowupForm({ id, firstName, lastName, diagnosisList })
       <form>
         <Stack spacing={3}>
           <FormControl>
-            <TextField name="motif" label="Motif" value={pattern} onChange={(e) => setPattern(e.target.value)} />
+            <Typography variant="h6" sx={{ marginBottom: '1rem' }}>
+              Motif:{' '}
+            </Typography>
+            <Editor
+              onInit={(e, editor) => {
+                motifRef.current = editor;
+              }}
+              init={{
+                height: 240,
+                menubar: false,
+                toolbar:
+                  'undo redo | formatselect | ' +
+                  'bold italic backcolor | alignleft aligncenter ' +
+                  'alignright alignjustify | bullist numlist outdent indent | ',
+              }}
+            />
+            {/* <TextField name="motif" label="Motif" value={pattern} onChange={(e) => setPattern(e.target.value)} /> */}
           </FormControl>
 
           <FormControl>
-            <TextField
+            <Typography variant="h6" sx={{ marginBottom: '1rem' }}>
+              Examen clinique:{' '}
+            </Typography>
+            <Editor
+              init={{
+                height: 240,
+                menubar: false,
+                toolbar:
+                  'undo redo | formatselect | ' +
+                  'bold italic backcolor | alignleft aligncenter ' +
+                  'alignright alignjustify | bullist numlist outdent indent | ',
+              }}
+              onInit={(e, editor) => {
+                clinicalExamRef.current = editor;
+              }}
+            />
+            {/* <TextField
               name="examenClinique"
               multiline
               rows={4}
@@ -256,17 +288,33 @@ export default function FollowupForm({ id, firstName, lastName, diagnosisList })
               aria-label="maximum height"
               value={clinicalExam}
               onChange={(e) => setClinicalExam(e.target.value)}
-            />
+            /> */}
           </FormControl>
           <FormControl>
-            <TextField
+            <Typography variant="h6" sx={{ marginBottom: '1rem' }}>
+              Examen complementaire:{' '}
+            </Typography>
+            <Editor
+              init={{
+                height: 240,
+                menubar: false,
+                toolbar:
+                  'undo redo | formatselect | ' +
+                  'bold italic backcolor | alignleft aligncenter ' +
+                  'alignright alignjustify | bullist numlist outdent indent | ',
+              }}
+              onInit={(e, editor) => {
+                complementaryExamRef.current = editor;
+              }}
+            />
+            {/* <TextField
               name="examenComplementaire"
               label="Examen Complementaire"
               multiline
               rows={4}
               value={complementaryExam}
               onChange={(e) => setComplementaryExam(e.target.value)}
-            />
+            /> */}
           </FormControl>
           <FormGroup>
             <FormControlLabel

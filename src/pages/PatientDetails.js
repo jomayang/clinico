@@ -219,19 +219,19 @@ export default function PatientDetails() {
                   <Box sx={{ marginBottom: '10px' }}>
                     <Typography sx={{ fontSize: '14px', fontWeight: 'bold' }}>Motif: </Typography>
                     <Typography sx={{ fontSize: '14px', lineHeight: 1.5, color: '#878f97' }}>
-                      {followup.pattern}
+                      <span dangerouslySetInnerHTML={{ __html: followup.pattern }} />
                     </Typography>
                   </Box>
                   <Box sx={{ marginBottom: '10px' }}>
                     <Typography sx={{ fontSize: '14px', fontWeight: 'bold' }}>Examen Clinique: </Typography>
                     <Typography sx={{ fontSize: '14px', lineHeight: 1.5, color: '#878f97' }}>
-                      {followup.clinicalExam}
+                      <span dangerouslySetInnerHTML={{ __html: followup.clinicalExam }} />
                     </Typography>
                   </Box>
                   <Box sx={{ marginBottom: '10px' }}>
                     <Typography sx={{ fontSize: '14px', fontWeight: 'bold' }}>Examen Complementaire: </Typography>
                     <Typography sx={{ fontSize: '14px', lineHeight: 1.5, color: '#878f97' }}>
-                      {followup.complementaryExam}
+                      <span dangerouslySetInnerHTML={{ __html: followup.complementaryExam }} />
                     </Typography>
                   </Box>
                   {followup.diagnosisType && (
