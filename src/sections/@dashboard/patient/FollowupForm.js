@@ -248,6 +248,7 @@ export default function FollowupForm({ id, firstName, lastName, diagnosisList })
               Motif:{' '}
             </Typography>
             <Editor
+              apiKey="dts7xvur2zu1amsrr01r2x00ngaoo9mwc0gbklc96qy4bkcy"
               onInit={(e, editor) => {
                 motifRef.current = editor;
               }}
@@ -268,6 +269,7 @@ export default function FollowupForm({ id, firstName, lastName, diagnosisList })
               Examen clinique:{' '}
             </Typography>
             <Editor
+              apiKey="dts7xvur2zu1amsrr01r2x00ngaoo9mwc0gbklc96qy4bkcy"
               init={{
                 height: 240,
                 menubar: false,
@@ -295,6 +297,7 @@ export default function FollowupForm({ id, firstName, lastName, diagnosisList })
               Examen complementaire:{' '}
             </Typography>
             <Editor
+              apiKey="dts7xvur2zu1amsrr01r2x00ngaoo9mwc0gbklc96qy4bkcy"
               init={{
                 height: 240,
                 menubar: false,
