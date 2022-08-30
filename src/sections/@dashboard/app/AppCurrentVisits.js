@@ -57,7 +57,7 @@ export default function AppCurrentVisits({ title, subheader, chartColors, chartD
       y: {
         formatter: (seriesName) => fNumber(seriesName),
         title: {
-          formatter: (seriesName) => `${seriesName}`,
+          formatter: (seriesName) => `${seriesName} (DA)`,
         },
       },
     },

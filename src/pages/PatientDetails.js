@@ -178,8 +178,8 @@ export default function PatientDetails() {
         firstName: patient.firstName,
         lastName: patient.lastName,
         date: serverTimestamp(),
-        payed: credit,
-        credit: newCredit,
+        payed: 0,
+        credit: -credit,
       });
       setFeedback(`cleaned ${credit} DA`);
 

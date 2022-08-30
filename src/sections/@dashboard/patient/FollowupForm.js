@@ -50,13 +50,34 @@ const CONSULTATION_PRICE = 1500;
 const EEG_PRICE = 12000;
 const EMG_PRICE = 8000;
 
+const diagnosisTypeList = [
+  'AVC',
+  'Epilepsie',
+  'SEP',
+  'Neuro Vascularite',
+  'Neuropathie',
+  'Myopathie',
+  'Démence',
+  'Maladie de Parkinson',
+  'Syndrome extra pyramidal',
+  'Myasthénie',
+  'Trouble du sommeil',
+  'Maladie neuro dégénérative',
+  'Trouble psycho somatique',
+  'Vertige',
+  'Rhumatologique',
+  'Orthopédique',
+  'EEG',
+  'EMG',
+  'Autre',
+];
 export default function FollowupForm({ id, firstName, lastName, diagnosisList }) {
   const navigate = useNavigate();
 
   const [pattern, setPattern] = useState(''); // motif
   const [clinicalExam, setClinicalExam] = useState('');
   const [complementaryExam, setComplementaryExam] = useState('');
-  const [images, setImages] = useState([]);
+  const [images, setImages] = useState('');
   const [EEG, setEEG] = useState(false);
   const [EMG, setEMG] = useState(false);
   const [credit, setCredit] = useState(0);
@@ -117,7 +138,8 @@ export default function FollowupForm({ id, firstName, lastName, diagnosisList })
 
   const createFollowup = async () => {
     try {
-      const imageList = images.replace(' ', '').split(',');
+      console.log('images: ', images);
+      const imageList = images && images !== '' ? images.replace(' ', '').split(',') : [];
       console.log(imageList);
       const followupObject = isNewDiagnosis
         ? {
@@ -126,7 +148,6 @@ export default function FollowupForm({ id, firstName, lastName, diagnosisList })
             complementaryExam,
             EEG,
             EMG,
-            images: imageList,
             consultationDate: serverTimestamp(),
             payed,
             credit,
@@ -140,12 +161,12 @@ export default function FollowupForm({ id, firstName, lastName, diagnosisList })
             complementaryExam,
             EEG,
             EMG,
-            images: imageList,
             consultationDate: serverTimestamp(),
             payed,
             credit,
             treatments,
           };
+      if (imageList && imageList.length !== 0) followupObject.images = imageList;
       await addDoc(collection(db, 'patients', id, 'folder'), followupObject);
       await addDoc(collection(db, 'payments'), {
         firstName,
@@ -247,7 +268,53 @@ export default function FollowupForm({ id, firstName, lastName, diagnosisList })
               onChange={(e) => setComplementaryExam(e.target.value)}
             />
           </FormControl>
+          <FormGroup>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={isNewDiagnosis}
+                  onChange={(e) => setIsNewDiagnosis(e.target.checked)}
+                  inputProps={{ 'aria-label': 'controlled' }}
+                />
+              }
+              label="Nouveau Diagnostique"
+            />
+          </FormGroup>
+          {isNewDiagnosis && (
+            <>
+              <FormControl fullWidth>
+                <Autocomplete
+                  disablePortal
+                  value={diagnosisType}
+                  onChange={(e, value) => setDiagnosisType(value)}
+                  options={diagnosisTypeList}
+                  // sx={{ width: 300 }}
+                  defaultValue={''}
+                  renderInput={(params) => <TextField {...params} label="Type de diagnostique" />}
+                />
+              </FormControl>
+              {/* <FormControl>
+                <TextField
+                  name="diagnosis-type"
+                  label="Type de diagnostique"
+                  value={diagnosisType}
+                  onChange={(e) => setDiagnosisType(e.target.value)}
+                />
+              </FormControl> */}
 
+              <FormControl>
+                <TextField
+                  name="diagnosis-details"
+                  multiline
+                  rows={4}
+                  label="Details de diagnostique"
+                  aria-label="maximum height"
+                  value={diagnosisDetails}
+                  onChange={(e) => setDiagnosisDetails(e.target.value)}
+                />
+              </FormControl>
+            </>
+          )}
           <FormControl>
             <TextField
               name="images"
@@ -330,42 +397,7 @@ export default function FollowupForm({ id, firstName, lastName, diagnosisList })
               </IconButton>
             </Box>
           </Box>
-          <FormGroup>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={isNewDiagnosis}
-                  onChange={(e) => setIsNewDiagnosis(e.target.checked)}
-                  inputProps={{ 'aria-label': 'controlled' }}
-                />
-              }
-              label="Nouveau Diagnostique"
-            />
-          </FormGroup>
-          {isNewDiagnosis && (
-            <>
-              <FormControl>
-                <TextField
-                  name="diagnosis-type"
-                  label="Type de diagnostique"
-                  value={diagnosisType}
-                  onChange={(e) => setDiagnosisType(e.target.value)}
-                />
-              </FormControl>
 
-              <FormControl>
-                <TextField
-                  name="diagnosis-details"
-                  multiline
-                  rows={4}
-                  label="Details de diagnostique"
-                  aria-label="maximum height"
-                  value={diagnosisDetails}
-                  onChange={(e) => setDiagnosisDetails(e.target.value)}
-                />
-              </FormControl>
-            </>
-          )}
           <hr />
           <FormControl>
             <TextField name="payed" label="payé" value={payed} onChange={(e) => setPayed(+e.target.value)} />
