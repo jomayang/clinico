@@ -49,12 +49,15 @@ export default function DashboardNavbar({ onOpenSidebar }) {
   const [revenue, setRevenue] = useState(0);
   const [isDoctor, setIsDoctor] = useState(false);
   const paymentsRef = collection(db, 'payments');
+  const transactionsRef = collection(db, 'transactions');
 
   const usersRef = collection(db, 'users');
   const q = currentUser ? query(paymentsRef, where('doctor', '==', currentUser.email)) : null;
+  const tq = currentUser ? query(transactionsRef, where('doctor', '==', currentUser.email)) : null;
   useEffect(() => {
     const getBalance = async () => {
       const qUser = currentUser ? query(usersRef, where('email', '==', currentUser.email)) : null;
+
       const dataUser = await getDocs(qUser);
       const profiles = dataUser.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
       const role = profiles[0].firstName ? profiles[0].role : '';
@@ -62,9 +65,17 @@ export default function DashboardNavbar({ onOpenSidebar }) {
 
       const data = await getDocs(q);
       const payments = data.docs.map((doc) => doc.data().payed);
-      console.log(payments);
-      const revenue = payments.reduce((previousValue, currentValue) => previousValue + currentValue, 0);
-      setRevenue(revenue * 0.7);
+
+      const transactionsData = await getDocs(tq);
+      const transactions = transactionsData.docs.map((doc) => doc.data().amount);
+      console.log(transactions);
+      let revenue = 0;
+      revenue = payments.reduce((previousValue, currentValue) => previousValue + currentValue, 0) * 0.5;
+      console.log(revenue);
+      let totalPaid = 0;
+      totalPaid = transactions.reduce((previousValue, currentValue) => previousValue + currentValue, 0);
+      console.log(totalPaid);
+      setRevenue(revenue - totalPaid);
     };
     getBalance();
   }, []);

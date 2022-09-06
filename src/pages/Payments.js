@@ -115,7 +115,7 @@ export default function Payments() {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelecteds = USERLIST.map((n) => n.name);
+      const newSelecteds = payments.map((n) => n.name);
       setSelected(newSelecteds);
       return;
     }
@@ -260,7 +260,7 @@ export default function Payments() {
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
-            count={USERLIST.length}
+            count={payments.length}
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={handleChangePage}

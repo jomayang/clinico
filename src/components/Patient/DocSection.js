@@ -74,6 +74,7 @@ function DocSection({ id, patient }) {
   const [feedback, setFeedback] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [age, setAge] = useState(0);
+
   const [drugList, setDrugList] = useState([]);
   useEffect(() => setAge(Math.floor((new Date() - patient.dateOfBirth.toDate().getTime()) / 3.15576e10)), []);
   // Orientation
