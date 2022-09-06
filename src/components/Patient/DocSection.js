@@ -85,11 +85,12 @@ function DocSection({ id, patient }) {
   // Arret de travail
   const [arretTravailType, setArretTravailType] = useState('');
   const [arretTravailFrom, setArretTravailFrom] = useState('');
+  const [arretTravailPeriod, setArretTravailPeriod] = useState('');
   const [arretTravailTo, setArretTravailTo] = useState('');
   const [arretTravailSortie, setArretTravailSortie] = useState(false);
   // bilan
   const [bilan, setBilan] = useState([{ svp: '', isOther: false }]);
-
+  const [number, setNumber] = useState(0);
   const addBilanField = () => setBilan([...bilan, { svp: '', isOther: false }]);
 
   const removeBilanField = (index) => {
@@ -112,6 +113,15 @@ function DocSection({ id, patient }) {
     };
     getPatients();
   }, []);
+
+  useEffect(() => {
+    const getOrdonances = async () => {
+      const data = await getDocs(collection(db, 'ordonances'));
+      setNumber(data.docs.length + 1);
+    };
+    getOrdonances();
+  }, []);
+
   // ordonance
   const [ordonance, setOrdonance] = useState([{ drugName: '', rate: '', duration: '' }]);
   const addOrdonanceField = () => setOrdonance([...ordonance, { drugName: '', rate: '', duration: '' }]);
@@ -178,13 +188,23 @@ function DocSection({ id, patient }) {
     try {
       // console.log(ordonance);
 
-      await addDoc(collection(db, 'patients', id, 'treatments'), { date: serverTimestamp(), treatment: ordonance });
+      await addDoc(collection(db, 'ordonances'), {
+        number,
+        firstName: patient.firstName,
+        lastName: patient.lastName,
+        date: serverTimestamp(),
+        age,
+        gender: patient.gender,
+        address: patient.address,
+        treatments: ordonance,
+      });
 
-      setFeedback('Treatment added!');
-
+      setFeedback('Ordonance added!');
+      setIsError(false);
       setOpen(true);
     } catch (err) {
-      setFeedback('a Problem accured when adding Treatment!');
+      console.log(err);
+      setFeedback('a Problem accured!');
       setIsError(true);
     }
   };
@@ -256,6 +276,7 @@ function DocSection({ id, patient }) {
                       gender={patient.gender}
                       address={patient.address}
                       ordonance={ordonance}
+                      number={number}
                     />
                   }
                   fileName="ordonance"
@@ -290,6 +311,14 @@ function DocSection({ id, patient }) {
                   <MenuItem value={'prolongation'}>Prolongation</MenuItem>
                   <MenuItem value={'reprise'}>Reprise</MenuItem>
                 </Select>
+              </FormControl>
+              <FormControl fullWidth>
+                <TextField
+                  name="arret-travail-period"
+                  label="Période"
+                  value={arretTravailPeriod}
+                  onChange={(e) => setArretTravailPeriod(e.target.value)}
+                />
               </FormControl>
               <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ marginTop: '1rem' }}>
                 <FormControl fullWidth>
@@ -330,6 +359,7 @@ function DocSection({ id, patient }) {
                     type={arretTravailType}
                     from={arretTravailFrom}
                     to={arretTravailTo}
+                    period={arretTravailPeriod}
                     sortie={arretTravailSortie}
                   />
                 }

@@ -49,6 +49,7 @@ import AppointmentAddForm from '../sections/@dashboard/patient/AppointmentAddFor
 import { db } from '../firebase-config';
 import DocSection from '../components/Patient/DocSection';
 import Ordonance from '../components/documents/Ordonance';
+import { useAuth } from '../contexts/AuthContext';
 
 // import { UserListHead, UserListToolbar, UserMoreMenu } from '../sections/@dashboard/user';
 const rows = [
@@ -114,12 +115,13 @@ export default function PatientDetails() {
   const followupsRef = collection(db, 'patients', id, 'folder');
   const q = query(followupsRef, orderBy('consultationDate', 'desc'));
 
+  const [number, setNumber] = useState(0);
   const [age, setAge] = useState(0);
 
   const [open, setOpen] = useState(false);
   const [isError, setIsError] = useState(false);
   const [feedback, setFeedback] = useState('');
-
+  const { currentUser } = useAuth();
   useEffect(() => {
     const getPatients = async () => {
       const data = await getDoc(patientRef);
@@ -130,7 +132,13 @@ export default function PatientDetails() {
     getPatients();
     console.log(id);
   }, []);
-
+  useEffect(() => {
+    const getOrdonances = async () => {
+      const data = await getDocs(collection(db, 'ordonances'));
+      setNumber(data.docs.length);
+    };
+    getOrdonances();
+  }, []);
   useEffect(() => {
     const getFollowups = async () => {
       // const query = await get(followupsRef, orderBy('date', 'desc'));
@@ -172,14 +180,16 @@ export default function PatientDetails() {
     const followupDoc = doc(db, 'patients', id, 'folder', fid);
     const paymentsCol = collection(db, 'payments');
     const newFields = { credit: newCredit, payed: newPayed };
+    const doctor = currentUser ? currentUser.email : '';
     try {
       await updateDoc(followupDoc, newFields);
       await addDoc(paymentsCol, {
         firstName: patient.firstName,
         lastName: patient.lastName,
         date: serverTimestamp(),
-        payed: 0,
+        payed: credit,
         credit: -credit,
+        doctor,
       });
       setFeedback(`cleaned ${credit} DA`);
 
@@ -208,6 +218,10 @@ export default function PatientDetails() {
                     diagnosisList={patient.diagnosisList || []}
                     firstName={patient.firstName}
                     lastName={patient.lastName}
+                    dateOfBirth={patient.dateOfBirth}
+                    address={patient.address}
+                    gender={patient.gender}
+                    number={number}
                     id={id}
                   />
                 )}
@@ -216,6 +230,15 @@ export default function PatientDetails() {
             <Stack spacing={2} sx={{ marginTop: '1rem' }}>
               {followups.map((followup, i) => (
                 <Card sx={{ padding: '2rem 2rem 1rem 2rem' }} key={i}>
+                  {followup.atcd && (
+                    <Box sx={{ marginBottom: '10px' }}>
+                      <Typography sx={{ fontSize: '14px', fontWeight: 'bold' }}>ATCD: </Typography>
+                      <Typography sx={{ fontSize: '14px', lineHeight: 1.5, color: '#878f97' }}>
+                        <span dangerouslySetInnerHTML={{ __html: followup.atcd }} />
+                      </Typography>
+                    </Box>
+                  )}
+
                   <Box sx={{ marginBottom: '10px' }}>
                     <Typography sx={{ fontSize: '14px', fontWeight: 'bold' }}>Motif: </Typography>
                     <Typography sx={{ fontSize: '14px', lineHeight: 1.5, color: '#878f97' }}>
@@ -307,6 +330,7 @@ export default function PatientDetails() {
                               lastName={patient.lastName}
                               age={age}
                               gender={patient.gender}
+                              number={number}
                               address={patient.address}
                               ordonance={followup.treatments}
                             />

@@ -18,7 +18,7 @@ import {
   TableContainer,
   TablePagination,
 } from '@mui/material';
-import { collection, getDocs, query, orderBy as firebaseOrderBy } from '@firebase/firestore';
+import { collection, getDocs, query, where, orderBy as firebaseOrderBy } from '@firebase/firestore';
 // components
 import Page from '../components/Page';
 import Label from '../components/Label';
@@ -31,6 +31,7 @@ import USERLIST from '../_mock/user';
 import { PatientListHead, PatientListToolbar, PatientMoreMenu } from '../sections/@dashboard/patient';
 import { db } from '../firebase-config';
 import AppointmentMoreMenu from '../sections/@dashboard/patient/AppointmentMoreMenu';
+import { useAuth } from '../contexts/AuthContext';
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
@@ -82,12 +83,22 @@ export default function Appointments() {
   const [filterName, setFilterName] = useState('');
 
   const [rowsPerPage, setRowsPerPage] = useState(5);
+  const { currentUser } = useAuth();
 
   const [appointments, setAppointments] = useState([]);
   const appointmentRef = collection(db, 'appointments');
-  const q = query(appointmentRef, firebaseOrderBy('date', 'asc'));
+  const usersRef = collection(db, 'users');
   useEffect(() => {
     const getAppointments = async () => {
+      const qUser = currentUser ? query(usersRef, where('email', '==', currentUser.email)) : null;
+      const dataUser = await getDocs(qUser);
+      const profiles = dataUser.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
+      const role = profiles[0].firstName ? profiles[0].role : '';
+
+      const q =
+        role === 'doctor'
+          ? query(appointmentRef, where('doctor', '==', currentUser.email))
+          : query(appointmentRef, firebaseOrderBy('date', 'asc'));
       const data = await getDocs(q);
 
       setAppointments(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));

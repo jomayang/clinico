@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Page, Text, Image, View, Document, StyleSheet } from '@react-pdf/renderer';
 import Template from './ordonance.png';
 
-function Ordonance({ firstName, lastName, gender, address, age, ordonance }) {
+function Ordonance({ firstName, lastName, gender, address, age, ordonance, number }) {
   const [date, setDate] = useState('');
   useEffect(() => {
     const today = new Date();
@@ -12,19 +12,38 @@ function Ordonance({ firstName, lastName, gender, address, age, ordonance }) {
 
     setDate(`${dd}/${mm}/${yyyy}`);
   }, []);
+
+  function padWithZero(num, targetLength) {
+    return String(num).padStart(targetLength, '0');
+  }
+
   return (
     <Document>
       <Page size="A4">
         <Image style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} src={Template} />
-        <Text style={{ position: 'absolute', top: 161, left: 452, fontSize: 13, fontWeight: 'bold' }}>{date}</Text>
+        <Text style={{ position: 'absolute', top: 161, left: 468, fontSize: 13, fontWeight: 'bold' }}>{date}</Text>
+        <Text style={{ position: 'absolute', top: 154, left: 138, fontSize: 14, fontWeight: 'bold' }}>
+          {padWithZero(number, 8)}
+        </Text>
 
-        <Text style={{ position: 'absolute', top: 190, left: 160, fontSize: 13, fontWeight: 'bold' }}>
+        <Text style={{ position: 'absolute', top: 191, left: 160, fontSize: 13, fontWeight: 'bold' }}>
           {lastName} {firstName}
         </Text>
-        <Text style={{ position: 'absolute', top: 190, left: 500, fontSize: 13, fontWeight: 'bold' }}>{age} Ans</Text>
+        <Text style={{ position: 'absolute', top: 191, left: 510, fontSize: 13, fontWeight: 'bold' }}>{age} Ans</Text>
 
-        <Text style={{ position: 'absolute', top: 217, left: 100, fontSize: 13, fontWeight: 'bold' }}>{gender}</Text>
-        <Text style={{ position: 'absolute', top: 217, left: 260, fontSize: 13, fontWeight: 'bold' }}>{address}</Text>
+        <Text
+          style={{
+            position: 'absolute',
+            top: 217,
+            left: 90,
+            fontSize: 13,
+            fontWeight: 'bold',
+            textTransform: 'capitalize',
+          }}
+        >
+          {gender}
+        </Text>
+        <Text style={{ position: 'absolute', top: 217, left: 214, fontSize: 13, fontWeight: 'bold' }}>{address}</Text>
         <View
           style={{
             position: 'absolute',

@@ -40,6 +40,7 @@ import Iconify from '../../../components/Iconify';
 import { FormProvider, RHFTextField } from '../../../components/hook-form';
 import RHFSelect from '../../../components/hook-form/RHFSelect';
 import { db } from '../../../firebase-config';
+import { useAuth } from '../../../contexts/AuthContext';
 
 const Alert = forwardRef((props, ref) => {
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
@@ -71,9 +72,10 @@ const diagnosisTypeList = [
   'EMG',
   'Autre',
 ];
-export default function FollowupForm({ id, firstName, lastName, diagnosisList }) {
+export default function FollowupForm({ id, firstName, lastName, diagnosisList, dateOfBirth, address, gender, number }) {
   const navigate = useNavigate();
-
+  const { currentUser } = useAuth();
+  const [atcd, setAtcd] = useState(''); // motif
   const [pattern, setPattern] = useState(''); // motif
   const [clinicalExam, setClinicalExam] = useState('');
   const [complementaryExam, setComplementaryExam] = useState('');
@@ -84,19 +86,36 @@ export default function FollowupForm({ id, firstName, lastName, diagnosisList })
   const [payed, setPayed] = useState(0);
   const [total, setTotal] = useState(0);
   const [isNewDiagnosis, setIsNewDiagnosis] = useState(false);
-
+  const [age, setAge] = useState(0);
   const [diagnosisType, setDiagnosisType] = useState('');
   const [diagnosisDetails, setDiagnosisDetails] = useState('');
   const [open, setOpen] = useState(false);
   const [isError, setIsError] = useState(false);
   const [feedback, setFeedback] = useState('');
+  const [currentUserEmail, setCurrentUserEmail] = useState('');
+  const [consultationPrice, setConsultationPrice] = useState(0);
+  const [eegPrice, setEegPrice] = useState(0);
+  const [emgPrice, setEmgPrice] = useState(0);
   const [treatments, setTreatments] = useState([{ drugName: '', rate: '', duration: '' }]);
 
   const motifRef = useRef();
   const complementaryExamRef = useRef();
   const clinicalExamRef = useRef();
+  const atcdRef = useRef();
 
   const [drugList, setDrugList] = useState([]);
+
+  useEffect(() => {
+    const getPrices = async () => {
+      const data = await getDocs(collection(db, 'prices'));
+      const pricesArr = data.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
+      setConsultationPrice(pricesArr[0].consultation);
+      setEegPrice(pricesArr[0].eeg);
+      setEmgPrice(pricesArr[0].emg);
+    };
+    getPrices();
+  }, []);
+
   useEffect(() => {
     const getPatients = async () => {
       const data = await getDocs(collection(db, 'drugs'));
@@ -105,7 +124,7 @@ export default function FollowupForm({ id, firstName, lastName, diagnosisList })
     };
     getPatients();
   }, []);
-
+  useEffect(() => setAge(Math.floor((new Date() - dateOfBirth.toDate().getTime()) / 3.15576e10)), []);
   const RegisterSchema = Yup.object().shape({
     // nom: Yup.string().required('First name required'),
     // prenom: Yup.string().required('Last name required'),
@@ -143,6 +162,7 @@ export default function FollowupForm({ id, firstName, lastName, diagnosisList })
       console.log(imageList);
       const followupObject = isNewDiagnosis
         ? {
+            atcd: atcdRef.current.getContent(),
             pattern: motifRef.current.getContent(),
             clinicalExam: clinicalExamRef.current.getContent(),
             complementaryExam: complementaryExamRef.current.getContent(),
@@ -154,8 +174,10 @@ export default function FollowupForm({ id, firstName, lastName, diagnosisList })
             diagnosisType,
             diagnosisDetails,
             treatments,
+            doctor: currentUser ? currentUser.email : '',
           }
         : {
+            atcd: atcdRef.current.getContent(),
             pattern: motifRef.current.getContent(),
             clinicalExam: clinicalExamRef.current.getContent(),
             complementaryExam: complementaryExamRef.current.getContent(),
@@ -165,6 +187,7 @@ export default function FollowupForm({ id, firstName, lastName, diagnosisList })
             payed,
             credit,
             treatments,
+            doctor: currentUser ? currentUser.email : '',
           };
       if (imageList && imageList.length !== 0) followupObject.images = imageList;
       await addDoc(collection(db, 'patients', id, 'folder'), followupObject);
@@ -174,7 +197,22 @@ export default function FollowupForm({ id, firstName, lastName, diagnosisList })
         date: serverTimestamp(),
         payed,
         credit,
+        doctor: currentUser ? currentUser.email : '',
       });
+      console.log('number: ', number);
+      if (treatments !== { drugName: '', rate: '', duration: '' }) {
+        await addDoc(collection(db, 'ordonances'), {
+          number: number + 1,
+          firstName,
+          lastName,
+          date: serverTimestamp(),
+          age,
+          gender,
+          address,
+          treatments,
+          doctor: currentUser ? currentUser.email : '',
+        });
+      }
       // console.log(diagnosisList);
       // console.log([...diagnosisList, diagnosisType]);
       if (isNewDiagnosis) {
@@ -227,12 +265,12 @@ export default function FollowupForm({ id, firstName, lastName, diagnosisList })
   };
 
   useEffect(() => {
-    let total = CONSULTATION_PRICE;
+    let total = consultationPrice;
     if (EEG) {
-      total += EEG_PRICE;
+      total += eegPrice;
     }
     if (EMG) {
-      total += EMG_PRICE;
+      total += emgPrice;
     }
 
     setTotal(total.toFixed(2));
@@ -243,6 +281,26 @@ export default function FollowupForm({ id, firstName, lastName, diagnosisList })
     <LocalizationProvider dateAdapter={AdapterDateFns}>
       <form>
         <Stack spacing={3}>
+          <FormControl>
+            <Typography variant="h6" sx={{ marginBottom: '1rem' }}>
+              ATCD:{' '}
+            </Typography>
+            <Editor
+              apiKey="dts7xvur2zu1amsrr01r2x00ngaoo9mwc0gbklc96qy4bkcy"
+              onInit={(e, editor) => {
+                atcdRef.current = editor;
+              }}
+              init={{
+                height: 240,
+                menubar: false,
+                toolbar:
+                  'undo redo | formatselect | ' +
+                  'bold italic backcolor | alignleft aligncenter ' +
+                  'alignright alignjustify | bullist numlist outdent indent | ',
+              }}
+            />
+            {/* <TextField name="motif" label="Motif" value={pattern} onChange={(e) => setPattern(e.target.value)} /> */}
+          </FormControl>
           <FormControl>
             <Typography variant="h6" sx={{ marginBottom: '1rem' }}>
               Motif:{' '}

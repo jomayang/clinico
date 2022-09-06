@@ -17,27 +17,29 @@ import {
   Typography,
   TableContainer,
   TablePagination,
+  IconButton,
 } from '@mui/material';
-import { collection, getDocs, where, orderBy as firebaseOrderBy, query } from '@firebase/firestore';
+import { collection, getDocs, query, orderBy as firebaseOrderBy } from '@firebase/firestore';
 // components
+import { PDFDownloadLink } from '@react-pdf/renderer';
 import Page from '../components/Page';
 import Label from '../components/Label';
 import Scrollbar from '../components/Scrollbar';
 import Iconify from '../components/Iconify';
 import SearchNotFound from '../components/SearchNotFound';
 // import { UserListHead, UserListToolbar, UserMoreMenu } from '../sections/@dashboard/user';
+// import DownloadIcon from '@mui/icons-material/Download';
 // mock
 import USERLIST from '../_mock/user';
 import { PatientListHead, PatientListToolbar, PatientMoreMenu } from '../sections/@dashboard/patient';
 import { db } from '../firebase-config';
 import AppointmentMoreMenu from '../sections/@dashboard/patient/AppointmentMoreMenu';
-import { useAuth } from '../contexts/AuthContext';
+import Ordonance from '../components/documents/Ordonance';
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
-  { id: 'fullname', label: 'Nom et prenom', alignRight: false },
-  { id: 'paid', label: 'Payé', alignRight: false },
-  { id: 'credit', label: 'Crédit', alignRight: false },
+  { id: 'number', label: 'Matricule', alignRight: false },
+  { id: 'fullname', label: 'Patient', alignRight: false },
   { id: 'date', label: 'Date', alignRight: false },
   { id: '' },
 ];
@@ -73,7 +75,7 @@ function applySortFilter(array, comparator, query) {
   return stabilizedThis.map((el) => el[0]);
 }
 
-export default function Payments() {
+export default function Archieve() {
   const [page, setPage] = useState(0);
 
   const [order, setOrder] = useState('asc');
@@ -85,26 +87,17 @@ export default function Payments() {
   const [filterName, setFilterName] = useState('');
 
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  const { currentUser } = useAuth();
-  const [payments, setPayments] = useState([]);
-  const paymentRef = collection(db, 'payments');
-  const usersRef = collection(db, 'users');
-  useEffect(() => {
-    const getPayments = async () => {
-      const qUser = currentUser ? query(usersRef, where('email', '==', currentUser.email)) : null;
-      const dataUser = await getDocs(qUser);
-      const profiles = dataUser.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
-      const role = profiles[0].firstName ? profiles[0].role : '';
 
-      const q =
-        role === 'doctor'
-          ? query(paymentRef, where('doctor', '==', currentUser.email))
-          : query(paymentRef, firebaseOrderBy('date', 'desc'));
+  const [appointments, setAppointments] = useState([]);
+  const appointmentRef = collection(db, 'ordonances');
+  const q = query(appointmentRef, firebaseOrderBy('date', 'asc'));
+  useEffect(() => {
+    const getOrdonances = async () => {
       const data = await getDocs(q);
 
-      setPayments(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+      setAppointments(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
     };
-    getPayments();
+    getOrdonances();
   }, []);
 
   const handleRequestSort = (event, property) => {
@@ -150,9 +143,9 @@ export default function Payments() {
     setFilterName(event.target.value);
   };
 
-  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - payments.length) : 0;
+  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - appointments.length) : 0;
 
-  const filteredUsers = applySortFilter(payments, getComparator(order, orderBy), filterName);
+  const filteredUsers = applySortFilter(appointments, getComparator(order, orderBy), filterName);
 
   const isUserNotFound = filteredUsers.length === 0;
 
@@ -161,7 +154,7 @@ export default function Payments() {
       <Container>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
-            Payments
+            Archieve
           </Typography>
         </Stack>
 
@@ -175,14 +168,14 @@ export default function Payments() {
                   order={order}
                   orderBy={orderBy}
                   headLabel={TABLE_HEAD}
-                  rowCount={payments.length}
+                  rowCount={appointments.length}
                   numSelected={selected.length}
                   onRequestSort={handleRequestSort}
                   onSelectAllClick={handleSelectAllClick}
                 />
                 <TableBody>
                   {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { id, firstName, lastName, date, payed, credit } = row;
+                    const { id, firstName, lastName, date, number, treatments, age, address, gender } = row;
                     const name = `${firstName} ${lastName}`;
                     const isItemSelected = selected.indexOf(id) !== -1;
                     console.log(isItemSelected);
@@ -199,41 +192,55 @@ export default function Payments() {
                         <TableCell padding="checkbox">
                           <Checkbox checked={isItemSelected} onChange={(event) => handleClick(event, id)} />
                         </TableCell>
-                        <TableCell component="th" scope="row" padding="none">
-                          <Stack
-                            direction="row"
-                            alignItems="center"
-                            spacing={2}
-                            sx={{
-                              a: {
-                                textDecoration: 'initial',
-                                color: '#333',
-                                transition: '.3s all ease-in-out',
-                              },
-                              'a:hover': {
-                                color: '#2065D1',
-                              },
-                            }}
-                          >
-                            <Avatar alt={name} src={'/static/mock-images/avatar_22.jpg'} />
-                            {/* <Link to={`/dashboard/patient/${id}`}> */}
-                            <Typography variant="subtitle2" noWrap>
-                              {name}
-                            </Typography>
-                            {/* </Link> */}
-                          </Stack>
-                        </TableCell>
-                        <TableCell>{payed.toFixed(2)} DA</TableCell>
-                        <TableCell>{credit.toFixed(2)} DA</TableCell>
+
                         <TableCell align="left">
                           {/* {date.toDate().toLocaleDateString('fr-FR')} {date.toDate().toLocaleTimeString('fr-FR')} */}
-                          {date.toDate().toUTCString()}
+                          {number}
+                        </TableCell>
+                        <TableCell component="th" scope="row" padding="none">
+                          <Typography variant="subtitle2" noWrap>
+                            {name}
+                          </Typography>
+                        </TableCell>
+                        <TableCell align="left">
+                          {date.toDate().toDateString()}
+                          {/* {date.toDate().toLocaleDateString('fr-FR')} {date.toDate().toLocaleTimeString('fr-FR')} */}
+                          {number}
                         </TableCell>
                         {/* <TableCell align="left">
                           <Label variant="ghost" color={(status === 'banned' && 'error') || 'success'}>
                             {sentenceCase(status)}
                           </Label>
                         </TableCell> */}
+
+                        <TableCell align="right">
+                          <PDFDownloadLink
+                            document={
+                              <Ordonance
+                                firstName={firstName}
+                                lastName={lastName}
+                                age={age}
+                                address={address}
+                                ordonance={treatments}
+                                gender={gender}
+                                number={number}
+                              />
+                            }
+                            fileName="ordonance"
+                          >
+                            {({ loading, error }) =>
+                              loading ? (
+                                <IconButton>
+                                  <Iconify icon="eva:loader-outline" width={20} height={20} />
+                                </IconButton>
+                              ) : (
+                                <IconButton>
+                                  <Iconify icon="eva:download-outline" width={20} height={20} />
+                                </IconButton>
+                              )
+                            }
+                          </PDFDownloadLink>
+                        </TableCell>
                       </TableRow>
                     );
                   })}

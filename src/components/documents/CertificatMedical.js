@@ -42,7 +42,7 @@ function CertificatMedical({ firstName, lastName, dateOfBirth, details }) {
             fontWeight: 'bold',
           }}
         >
-          {details}
+          {details} Ce certificat est délivré pour faire valoir ce qui est de droit.
         </Text>
       </Page>
     </Document>

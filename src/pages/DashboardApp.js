@@ -1,7 +1,23 @@
+import { forwardRef, useEffect, useState } from 'react';
 import { faker } from '@faker-js/faker';
 // @mui
 import { useTheme } from '@mui/material/styles';
-import { Grid, Container, Typography } from '@mui/material';
+import MuiAlert, { AlertProps } from '@mui/material/Alert';
+import { getDocs, collection, addDoc, updateDoc, doc } from '@firebase/firestore';
+import {
+  Grid,
+  Container,
+  Typography,
+  CardHeader,
+  Card,
+  FormControl,
+  Autocomplete,
+  TextField,
+  CardContent,
+  Snackbar,
+  Button,
+  Box,
+} from '@mui/material';
 // components
 import Page from '../components/Page';
 import Iconify from '../components/Iconify';
@@ -17,12 +33,81 @@ import {
   AppCurrentSubject,
   AppConversionRates,
 } from '../sections/@dashboard/app';
-
+import { db } from '../firebase-config';
 // ----------------------------------------------------------------------
+
+const Alert = forwardRef((props, ref) => <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />);
 
 export default function DashboardApp() {
   const theme = useTheme();
+  const [drugList, setDrugList] = useState([]);
+  const [newDrug, setNewDrug] = useState('');
 
+  const [consultationPrice, setConsultationPrice] = useState(0);
+  const [eegPrice, setEegPrice] = useState(0);
+  const [emgPrice, setEmgPrice] = useState(0);
+  const [id, setId] = useState('');
+  const [open, setOpen] = useState(false);
+  const [isError, setIsError] = useState(false);
+  const [feedback, setFeedback] = useState('');
+
+  useEffect(() => {
+    const getPatients = async () => {
+      const data = await getDocs(collection(db, 'drugs'));
+      const drugArr = data.docs.map((doc) => doc.data().drugDesc);
+      console.log(drugArr);
+      setDrugList(drugArr);
+    };
+    getPatients();
+  }, []);
+
+  useEffect(() => {
+    const getPrices = async () => {
+      const data = await getDocs(collection(db, 'prices'));
+      const pricesArr = data.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
+      setConsultationPrice(pricesArr[0].consultation);
+      setEegPrice(pricesArr[0].eeg);
+      setEmgPrice(pricesArr[0].emg);
+      setId(pricesArr[0].id);
+    };
+    getPrices();
+  }, []);
+
+  const addNewDrug = async () => {
+    try {
+      await addDoc(collection(db, 'drugs'), {
+        drugDesc: newDrug,
+      });
+      setFeedback('Drug added!');
+      setOpen(true);
+    } catch (err) {
+      setFeedback('a Problem accured when adding Drug!');
+      setIsError(true);
+    }
+  };
+
+  const updatePrices = async () => {
+    try {
+      await updateDoc(doc(db, 'prices', id), {
+        consultation: consultationPrice,
+        eeg: eegPrice,
+        emg: emgPrice,
+      });
+      setFeedback('Prices updated!');
+      setOpen(true);
+    } catch (err) {
+      setFeedback('a Problem accured when updating prices!');
+      setIsError(true);
+    }
+  };
+
+  const handleClose = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+
+    setOpen(false);
+  };
   return (
     <Page title="Dashboard">
       <Container maxWidth="xl">
@@ -31,22 +116,6 @@ export default function DashboardApp() {
         </Typography>
 
         <Grid container spacing={3}>
-          <Grid item xs={12} sm={6} md={3}>
-            <AppWidgetSummary title="Weekly Sales" total={714000} icon={'ant-design:android-filled'} />
-          </Grid>
-
-          <Grid item xs={12} sm={6} md={3}>
-            <AppWidgetSummary title="New Users" total={1352831} color="info" icon={'ant-design:apple-filled'} />
-          </Grid>
-
-          <Grid item xs={12} sm={6} md={3}>
-            <AppWidgetSummary title="Item Orders" total={1723315} color="warning" icon={'ant-design:windows-filled'} />
-          </Grid>
-
-          <Grid item xs={12} sm={6} md={3}>
-            <AppWidgetSummary title="Bug Reports" total={234} color="error" icon={'ant-design:bug-filled'} />
-          </Grid>
-
           <Grid item xs={12} md={6} lg={8}>
             <AppWebsiteVisits
               title="Website Visits"
@@ -88,127 +157,78 @@ export default function DashboardApp() {
           </Grid>
 
           <Grid item xs={12} md={6} lg={4}>
-            <AppCurrentVisits
-              title="Current Visits"
-              chartData={[
-                { label: 'America', value: 4344 },
-                { label: 'Asia', value: 5435 },
-                { label: 'Europe', value: 1443 },
-                { label: 'Africa', value: 4443 },
-              ]}
-              chartColors={[
-                theme.palette.primary.main,
-                theme.palette.chart.blue[0],
-                theme.palette.chart.violet[0],
-                theme.palette.chart.yellow[0],
-              ]}
-            />
-          </Grid>
+            <Card>
+              <CardHeader title={'Liste des médicaments'} />
+              <CardContent sx={{ paddingBottom: '1rem' }}>
+                <FormControl fullWidth>
+                  <Autocomplete
+                    disablePortal
+                    id="drug-list"
+                    options={drugList}
+                    renderInput={(params) => <TextField {...params} label="Médicaments" />}
+                  />
+                </FormControl>
+                <Box sx={{ paddingTop: '1rem', borderTop: '1px solid #ddd' }}>
+                  <Typography variant="h6">Ajouter médicament</Typography>
+                  <FormControl fullWidth sx={{ marginTop: '1rem', marginBottom: '1rem' }}>
+                    <TextField
+                      name="new-drug"
+                      label="Nouveau médicament"
+                      value={newDrug}
+                      onChange={(e) => setNewDrug(e.target.value)}
+                    />
+                  </FormControl>
 
-          <Grid item xs={12} md={6} lg={8}>
-            <AppConversionRates
-              title="Conversion Rates"
-              subheader="(+43%) than last year"
-              chartData={[
-                { label: 'Italy', value: 400 },
-                { label: 'Japan', value: 430 },
-                { label: 'China', value: 448 },
-                { label: 'Canada', value: 470 },
-                { label: 'France', value: 540 },
-                { label: 'Germany', value: 580 },
-                { label: 'South Korea', value: 690 },
-                { label: 'Netherlands', value: 1100 },
-                { label: 'United States', value: 1200 },
-                { label: 'United Kingdom', value: 1380 },
-              ]}
-            />
-          </Grid>
-
-          <Grid item xs={12} md={6} lg={4}>
-            <AppCurrentSubject
-              title="Current Subject"
-              chartLabels={['English', 'History', 'Physics', 'Geography', 'Chinese', 'Math']}
-              chartData={[
-                { name: 'Series 1', data: [80, 50, 30, 40, 100, 20] },
-                { name: 'Series 2', data: [20, 30, 40, 80, 20, 80] },
-                { name: 'Series 3', data: [44, 76, 78, 13, 43, 10] },
-              ]}
-              chartColors={[...Array(6)].map(() => theme.palette.text.secondary)}
-            />
-          </Grid>
-
-          <Grid item xs={12} md={6} lg={8}>
-            <AppNewsUpdate
-              title="News Update"
-              list={[...Array(5)].map((_, index) => ({
-                id: faker.datatype.uuid(),
-                title: faker.name.jobTitle(),
-                description: faker.name.jobTitle(),
-                image: `/static/mock-images/covers/cover_${index + 1}.jpg`,
-                postedAt: faker.date.recent(),
-              }))}
-            />
-          </Grid>
-
-          <Grid item xs={12} md={6} lg={4}>
-            <AppOrderTimeline
-              title="Order Timeline"
-              list={[...Array(5)].map((_, index) => ({
-                id: faker.datatype.uuid(),
-                title: [
-                  '1983, orders, $4220',
-                  '12 Invoices have been paid',
-                  'Order #37745 from September',
-                  'New order placed #XF-2356',
-                  'New order placed #XF-2346',
-                ][index],
-                type: `order${index + 1}`,
-                time: faker.date.past(),
-              }))}
-            />
-          </Grid>
-
-          <Grid item xs={12} md={6} lg={4}>
-            <AppTrafficBySite
-              title="Traffic by Site"
-              list={[
-                {
-                  name: 'FaceBook',
-                  value: 323234,
-                  icon: <Iconify icon={'eva:facebook-fill'} color="#1877F2" width={32} height={32} />,
-                },
-                {
-                  name: 'Google',
-                  value: 341212,
-                  icon: <Iconify icon={'eva:google-fill'} color="#DF3E30" width={32} height={32} />,
-                },
-                {
-                  name: 'Linkedin',
-                  value: 411213,
-                  icon: <Iconify icon={'eva:linkedin-fill'} color="#006097" width={32} height={32} />,
-                },
-                {
-                  name: 'Twitter',
-                  value: 443232,
-                  icon: <Iconify icon={'eva:twitter-fill'} color="#1C9CEA" width={32} height={32} />,
-                },
-              ]}
-            />
-          </Grid>
-
-          <Grid item xs={12} md={6} lg={8}>
-            <AppTasks
-              title="Tasks"
-              list={[
-                { id: '1', label: 'Create FireStone Logo' },
-                { id: '2', label: 'Add SCSS and JS files if required' },
-                { id: '3', label: 'Stakeholder Meeting' },
-                { id: '4', label: 'Scoping & Estimations' },
-                { id: '5', label: 'Sprint Showcase' },
-              ]}
-            />
+                  <Button fullWidth size="large" onClick={addNewDrug} variant="contained">
+                    Ajouter médicament
+                  </Button>
+                </Box>
+              </CardContent>
+            </Card>
+            <Card sx={{ marginTop: '2rem' }}>
+              <CardHeader title={'Prix'} />
+              <CardContent>
+                <FormControl fullWidth sx={{ marginTop: '1rem', marginBottom: '1rem' }}>
+                  <TextField
+                    name="consultation-price"
+                    label="Prix de consultation"
+                    value={consultationPrice}
+                    onChange={(e) => setConsultationPrice(e.target.value)}
+                  />
+                </FormControl>
+                <FormControl fullWidth sx={{ marginTop: '1rem', marginBottom: '1rem' }}>
+                  <TextField
+                    name="eeg-price"
+                    label="Prix d'EEG"
+                    value={eegPrice}
+                    onChange={(e) => setEegPrice(e.target.value)}
+                  />
+                </FormControl>
+                <FormControl fullWidth sx={{ marginTop: '1rem', marginBottom: '1rem' }}>
+                  <TextField
+                    name="emg-price"
+                    label="Prix d'EMG"
+                    value={emgPrice}
+                    onChange={(e) => setEmgPrice(e.target.value)}
+                  />
+                </FormControl>
+                <Button fullWidth size="large" onClick={updatePrices} variant="contained">
+                  Modifier prix
+                </Button>
+              </CardContent>
+            </Card>
           </Grid>
         </Grid>
+        <Snackbar
+          open={open}
+          autoHideDuration={6000}
+          onClose={handleClose}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        >
+          <Alert onClose={handleClose} severity={isError ? 'error' : 'success'} sx={{ width: '100%' }}>
+            {feedback}
+          </Alert>
+        </Snackbar>
       </Container>
     </Page>
   );

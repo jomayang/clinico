@@ -135,7 +135,7 @@ export default function Stats() {
       setCreditRate(totalCredit / expectedRevenue);
 
       const currentDate = new Date();
-      const lastMonth = currentDate.getMonth() + 1;
+      const lastMonth = currentDate.getMonth();
       console.log(lastMonth);
       const months = data.docs.map((doc) => {
         const date = doc.data().date.toDate();

@@ -17,8 +17,10 @@ import {
   Typography,
   TableContainer,
   TablePagination,
+  Badge,
+  Chip,
 } from '@mui/material';
-import { collection, getDocs, where, orderBy as firebaseOrderBy, query } from '@firebase/firestore';
+import { collection, getDocs, query, orderBy as firebaseOrderBy } from '@firebase/firestore';
 // components
 import Page from '../components/Page';
 import Label from '../components/Label';
@@ -30,15 +32,13 @@ import SearchNotFound from '../components/SearchNotFound';
 import USERLIST from '../_mock/user';
 import { PatientListHead, PatientListToolbar, PatientMoreMenu } from '../sections/@dashboard/patient';
 import { db } from '../firebase-config';
-import AppointmentMoreMenu from '../sections/@dashboard/patient/AppointmentMoreMenu';
-import { useAuth } from '../contexts/AuthContext';
+import RoleMoreMenu from '../sections/@dashboard/patient/RoleMoreMenu';
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
   { id: 'fullname', label: 'Nom et prenom', alignRight: false },
-  { id: 'paid', label: 'Payé', alignRight: false },
-  { id: 'credit', label: 'Crédit', alignRight: false },
-  { id: 'date', label: 'Date', alignRight: false },
+  { id: 'email', label: 'Email', alignRight: false },
+  { id: 'role', label: 'Role', alignRight: false },
   { id: '' },
 ];
 
@@ -73,7 +73,7 @@ function applySortFilter(array, comparator, query) {
   return stabilizedThis.map((el) => el[0]);
 }
 
-export default function Payments() {
+export default function Roles() {
   const [page, setPage] = useState(0);
 
   const [order, setOrder] = useState('asc');
@@ -85,26 +85,15 @@ export default function Payments() {
   const [filterName, setFilterName] = useState('');
 
   const [rowsPerPage, setRowsPerPage] = useState(5);
-  const { currentUser } = useAuth();
-  const [payments, setPayments] = useState([]);
-  const paymentRef = collection(db, 'payments');
-  const usersRef = collection(db, 'users');
+
+  const [users, setUsers] = useState([]);
   useEffect(() => {
-    const getPayments = async () => {
-      const qUser = currentUser ? query(usersRef, where('email', '==', currentUser.email)) : null;
-      const dataUser = await getDocs(qUser);
-      const profiles = dataUser.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
-      const role = profiles[0].firstName ? profiles[0].role : '';
+    const getUsers = async () => {
+      const data = await getDocs(collection(db, 'users'));
 
-      const q =
-        role === 'doctor'
-          ? query(paymentRef, where('doctor', '==', currentUser.email))
-          : query(paymentRef, firebaseOrderBy('date', 'desc'));
-      const data = await getDocs(q);
-
-      setPayments(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
+      setUsers(data.docs.map((doc) => ({ ...doc.data(), id: doc.id })));
     };
-    getPayments();
+    getUsers();
   }, []);
 
   const handleRequestSort = (event, property) => {
@@ -150,9 +139,9 @@ export default function Payments() {
     setFilterName(event.target.value);
   };
 
-  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - payments.length) : 0;
+  const emptyRows = page > 0 ? Math.max(0, (1 + page) * rowsPerPage - users.length) : 0;
 
-  const filteredUsers = applySortFilter(payments, getComparator(order, orderBy), filterName);
+  const filteredUsers = applySortFilter(users, getComparator(order, orderBy), filterName);
 
   const isUserNotFound = filteredUsers.length === 0;
 
@@ -161,7 +150,7 @@ export default function Payments() {
       <Container>
         <Stack direction="row" alignItems="center" justifyContent="space-between" mb={5}>
           <Typography variant="h4" gutterBottom>
-            Payments
+            Role Management
           </Typography>
         </Stack>
 
@@ -175,18 +164,16 @@ export default function Payments() {
                   order={order}
                   orderBy={orderBy}
                   headLabel={TABLE_HEAD}
-                  rowCount={payments.length}
+                  rowCount={users.length}
                   numSelected={selected.length}
                   onRequestSort={handleRequestSort}
                   onSelectAllClick={handleSelectAllClick}
                 />
                 <TableBody>
                   {filteredUsers.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row) => {
-                    const { id, firstName, lastName, date, payed, credit } = row;
+                    const { id, firstName, lastName, email, role } = row;
                     const name = `${firstName} ${lastName}`;
                     const isItemSelected = selected.indexOf(id) !== -1;
-                    console.log(isItemSelected);
-                    console.log(date.toDate().toString());
                     return (
                       <TableRow
                         hover
@@ -223,17 +210,27 @@ export default function Payments() {
                             {/* </Link> */}
                           </Stack>
                         </TableCell>
-                        <TableCell>{payed.toFixed(2)} DA</TableCell>
-                        <TableCell>{credit.toFixed(2)} DA</TableCell>
                         <TableCell align="left">
                           {/* {date.toDate().toLocaleDateString('fr-FR')} {date.toDate().toLocaleTimeString('fr-FR')} */}
-                          {date.toDate().toUTCString()}
+                          {email}
+                        </TableCell>
+
+                        <TableCell align="left">
+                          {/* {date.toDate().toLocaleDateString('fr-FR')} {date.toDate().toLocaleTimeString('fr-FR')} */}
+                          {!role && <Chip label="New user" variant="outlined" />}
+                          {role === 'admin' && <Chip label="Admin" variant="outlined" color="error" />}
+                          {role === 'doctor' && <Chip label="Medecin" variant="outlined" color="secondary" />}
+                          {role === 'receptionist' && <Chip label="Réceptioniste" variant="outlined" color="success" />}
                         </TableCell>
                         {/* <TableCell align="left">
                           <Label variant="ghost" color={(status === 'banned' && 'error') || 'success'}>
                             {sentenceCase(status)}
                           </Label>
                         </TableCell> */}
+
+                        <TableCell align="right">
+                          <RoleMoreMenu id={id} />
+                        </TableCell>
                       </TableRow>
                     );
                   })}

@@ -1,14 +1,18 @@
 import PropTypes from 'prop-types';
+import { useEffect, useState } from 'react';
 // material
 import { alpha, styled } from '@mui/material/styles';
-import { Box, Stack, AppBar, Toolbar, IconButton } from '@mui/material';
+import { Box, Stack, AppBar, Toolbar, IconButton, Typography, Chip } from '@mui/material';
+import { collection, getDocs, query, where } from '@firebase/firestore';
 // components
+import { useAuth } from '../../contexts/AuthContext';
 import Iconify from '../../components/Iconify';
 //
 import Searchbar from './Searchbar';
 import AccountPopover from './AccountPopover';
 import LanguagePopover from './LanguagePopover';
 import NotificationsPopover from './NotificationsPopover';
+import { db } from '../../firebase-config';
 
 // ----------------------------------------------------------------------
 
@@ -41,6 +45,30 @@ DashboardNavbar.propTypes = {
 };
 
 export default function DashboardNavbar({ onOpenSidebar }) {
+  const { currentUser } = useAuth();
+  const [revenue, setRevenue] = useState(0);
+  const [isDoctor, setIsDoctor] = useState(false);
+  const paymentsRef = collection(db, 'payments');
+
+  const usersRef = collection(db, 'users');
+  const q = currentUser ? query(paymentsRef, where('doctor', '==', currentUser.email)) : null;
+  useEffect(() => {
+    const getBalance = async () => {
+      const qUser = currentUser ? query(usersRef, where('email', '==', currentUser.email)) : null;
+      const dataUser = await getDocs(qUser);
+      const profiles = dataUser.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
+      const role = profiles[0].firstName ? profiles[0].role : '';
+      setIsDoctor(role === 'doctor');
+
+      const data = await getDocs(q);
+      const payments = data.docs.map((doc) => doc.data().payed);
+      console.log(payments);
+      const revenue = payments.reduce((previousValue, currentValue) => previousValue + currentValue, 0);
+      setRevenue(revenue * 0.7);
+    };
+    getBalance();
+  }, []);
+
   return (
     <RootStyle>
       <ToolbarStyle>
@@ -52,8 +80,9 @@ export default function DashboardNavbar({ onOpenSidebar }) {
         <Box sx={{ flexGrow: 1 }} />
 
         <Stack direction="row" alignItems="center" spacing={{ xs: 0.5, sm: 1.5 }}>
-          <LanguagePopover />
-          <NotificationsPopover />
+          {/* <LanguagePopover /> */}
+          {/* <NotificationsPopover /> */}
+          {isDoctor && <Chip label={`Crédit: ${revenue} DA`} color="success" variant="outlined" />}
           <AccountPopover />
         </Stack>
       </ToolbarStyle>

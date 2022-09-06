@@ -26,6 +26,7 @@ import {
 import { LoadingButton } from '@mui/lab';
 import MuiAlert, { AlertProps } from '@mui/material/Alert';
 import { db } from '../../../firebase-config';
+import { useAuth } from '../../../contexts/AuthContext';
 // components
 import Iconify from '../../../components/Iconify';
 import { FormProvider, RHFTextField } from '../../../components/hook-form';
@@ -44,6 +45,7 @@ export default function AppointmentAddForm({ firstName, lastName }) {
   const [open, setOpen] = useState(false);
   const [isError, setIsError] = useState(false);
   const [feedback, setFeedback] = useState('');
+  const { currentUser } = useAuth();
   const appointmentsCollectionRef = collection(db, 'appointments');
   const RegisterSchema = Yup.object().shape({
     // nom: Yup.string().required('First name required'),
@@ -75,10 +77,12 @@ export default function AppointmentAddForm({ firstName, lastName }) {
 
   const createAppointment = async () => {
     try {
+      const doctor = currentUser ? currentUser.email : '';
       await addDoc(appointmentsCollectionRef, {
         firstName,
         lastName,
         date: appointmentDate,
+        doctor,
       });
       setFeedback('Appointment added!');
       setOpen(true);

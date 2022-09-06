@@ -10,7 +10,7 @@ import Logo from '../components/Logo';
 // sections
 import { LoginForm } from '../sections/auth/login';
 import AuthSocial from '../sections/auth/AuthSocial';
-
+import { useAuth } from '../contexts/AuthContext';
 // ----------------------------------------------------------------------
 
 const RootStyle = styled('div')(({ theme }) => ({
@@ -59,6 +59,7 @@ const ContentStyle = styled('div')(({ theme }) => ({
 export default function Login() {
   const smUp = useResponsive('up', 'sm');
 
+  const { signin, currentUser, error: bError } = useAuth();
   const mdUp = useResponsive('up', 'md');
 
   return (
@@ -89,12 +90,12 @@ export default function Login() {
         <Container maxWidth="sm">
           <ContentStyle>
             <Typography variant="h4" gutterBottom>
-              Sign in to Minimal
+              Sign in to Minimal {currentUser && currentUser.email}
             </Typography>
 
             <Typography sx={{ color: 'text.secondary', mb: 5 }}>Enter your details below.</Typography>
 
-            <AuthSocial />
+            {/* <AuthSocial /> */}
 
             <LoginForm />
 

@@ -5,18 +5,23 @@ import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 // @mui
-import { Link, Stack, IconButton, InputAdornment } from '@mui/material';
+import { Link, Stack, IconButton, InputAdornment, Alert } from '@mui/material';
 import { LoadingButton } from '@mui/lab';
 // components
 import Iconify from '../../../components/Iconify';
 import { FormProvider, RHFTextField, RHFCheckbox } from '../../../components/hook-form';
-
+import { useAuth } from '../../../contexts/AuthContext';
 // ----------------------------------------------------------------------
 
 export default function LoginForm() {
   const navigate = useNavigate();
 
   const [showPassword, setShowPassword] = useState(false);
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const { signin, currentUser, error: bError } = useAuth();
 
   const LoginSchema = Yup.object().shape({
     email: Yup.string().email('Email must be a valid email address').required('Email is required'),
@@ -39,12 +44,29 @@ export default function LoginForm() {
     formState: { isSubmitting },
   } = methods;
 
-  const onSubmit = async () => {
-    navigate('/dashboard', { replace: true });
+  const onSubmit = async (form) => {
+    console.log(form);
+    try {
+      setError('');
+      setLoading(true);
+      console.log(form.email);
+      await signin(form.email, form.password);
+      console.log(currentUser);
+      // setLoading(false);
+    } catch (e) {
+      console.log(e);
+    }
+    setLoading(false);
+    navigate('/dashboard/calendar', { replace: true });
   };
-
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
+      {/* {currentUser.email} */}
+      {bError !== '' && (
+        <Alert sx={{ marginBottom: '1rem' }} severity="error">
+          {bError}
+        </Alert>
+      )}
       <Stack spacing={3}>
         <RHFTextField name="email" label="Email address" />
 
