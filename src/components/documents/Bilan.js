@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { Page, Text, Image, View, Document, StyleSheet } from '@react-pdf/renderer';
 import Template from './bilan.png';
 
-function Bilan({ firstName, lastName, bilan, age }) {
+function Bilan({ firstName, lastName, age, bilan }) {
   const [date, setDate] = useState('');
+
   useEffect(() => {
     const today = new Date();
     const dd = String(today.getDate()).padStart(2, '0');
@@ -12,6 +13,7 @@ function Bilan({ firstName, lastName, bilan, age }) {
 
     setDate(`${dd}/${mm}/${yyyy}`);
   }, []);
+
   return (
     <Document>
       <Page size="A4">
@@ -34,7 +36,7 @@ function Bilan({ firstName, lastName, bilan, age }) {
           {bilan.map((item, i) => (
             <Text style={{ display: 'block', width: '100%', fontSize: 14, lineHeight: 2 }} key={i}>
               {' '}
-              - {item.svp}
+              - {item}
             </Text>
           ))}
           {/* <Text style={{ display: 'block', width: '100%', fontSize: 14, lineHeight: 2 }}>

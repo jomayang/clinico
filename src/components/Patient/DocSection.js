@@ -6,6 +6,7 @@ import {
   FormControl,
   FormControlLabel,
   FormGroup,
+  Grid,
   IconButton,
   InputLabel,
   MenuItem,
@@ -90,22 +91,34 @@ function DocSection({ id, patient }) {
   const [arretTravailTo, setArretTravailTo] = useState('');
   const [arretTravailSortie, setArretTravailSortie] = useState(false);
   // bilan
-  const [bilan, setBilan] = useState([{ svp: '', isOther: false }]);
+  const [bilan, setBilan] = useState([]);
   const [number, setNumber] = useState(0);
-  const addBilanField = () => setBilan([...bilan, { svp: '', isOther: false }]);
 
-  const removeBilanField = (index) => {
-    const rows = [...bilan];
-    rows.splice(index, 1);
-    setBilan(rows);
-  };
-  const handleBilanChange = (index, e) => {
-    const { name, value } = e.target;
-    const list = [...bilan];
-    list[index][name] = value;
-    setBilan(list);
-    console.log(bilan);
-  };
+  const [FNS, setFNS] = useState(false);
+  const [TP, setTP] = useState(false);
+  const [INR, setINR] = useState(false);
+  const [TCK, setTCK] = useState(false);
+  const [VS, setVS] = useState(false);
+  const [CRP, setCRP] = useState(false);
+  const [ionogramme, setIonogramme] = useState(false);
+  const [Mg, setMg] = useState(false);
+  const [calcemie, setCalcemie] = useState(false);
+  const [phosphoremie, setPhosphoremie] = useState(false);
+  const [PTH, setPTH] = useState(false);
+  const [TSH, setTSH] = useState(false);
+  const [HDL, setHDL] = useState(false);
+  const [cholesterol, setCholesterol] = useState(false);
+  const [uree, setUree] = useState(false);
+  const [creatinine, setCreatinine] = useState(false);
+  const [TGO, setTGO] = useState(false);
+  const [GT, setGT] = useState(false);
+  const [PAL, setPAL] = useState(false);
+  const [electrophorese, setElectrophorese] = useState(false);
+  const [FAN, setFAN] = useState(false);
+  const [LDH, setLDH] = useState(false);
+  const [CPK, setCPK] = useState(false);
+  const [otherBilan, setOtherBilan] = useState('');
+
   useEffect(() => {
     const getPatients = async () => {
       const data = await getDocs(collection(db, 'drugs'));
@@ -114,6 +127,59 @@ function DocSection({ id, patient }) {
     };
     getPatients();
   }, []);
+
+  useEffect(() => {
+    const bilanArr = [];
+    if (FNS) bilanArr.push('FNS');
+    if (TP) bilanArr.push('TP');
+    if (TCK) bilanArr.push('TCK');
+    if (VS) bilanArr.push('VS');
+    if (CRP) bilanArr.push('CRP');
+    if (ionogramme) bilanArr.push('Ionogramme');
+    if (Mg) bilanArr.push('Mg');
+    if (calcemie) bilanArr.push('Calcémie');
+    if (phosphoremie) bilanArr.push('Phosphorémie');
+    if (PTH) bilanArr.push('PTH');
+    if (TSH) bilanArr.push('TSH, T3, T4');
+    if (HDL) bilanArr.push('HDL, LDL');
+    if (cholesterol) bilanArr.push('Cholestérol T, TG');
+    if (uree) bilanArr.push('Urée');
+    if (creatinine) bilanArr.push('Créatinine');
+    if (TGO) bilanArr.push('TGO, TGO');
+    if (GT) bilanArr.push('&gamma;GT');
+    if (PAL) bilanArr.push('PAL');
+    if (electrophorese) bilanArr.push('Electrophorèse des proteines');
+    if (FAN) bilanArr.push('FAN');
+    if (LDH) bilanArr.push('LDH');
+    if (CPK) bilanArr.push('CPK');
+    if (otherBilan !== '') bilanArr.push(otherBilan);
+    setBilan(bilanArr);
+  }, [
+    FNS,
+    TP,
+    INR,
+    TCK,
+    VS,
+    CRP,
+    ionogramme,
+    Mg,
+    calcemie,
+    phosphoremie,
+    PTH,
+    TSH,
+    HDL,
+    cholesterol,
+    uree,
+    creatinine,
+    TGO,
+    GT,
+    PAL,
+    electrophorese,
+    FAN,
+    LDH,
+    CPK,
+    otherBilan,
+  ]);
 
   useEffect(() => {
     const getOrdonances = async () => {
@@ -388,79 +454,298 @@ function DocSection({ id, patient }) {
               Bilan
             </Typography>
             <Stack spacing={3} style={{ marginTop: '1rem' }}>
-              {bilan.map((data, index) => {
-                const { svp, isOther } = data;
-                return (
-                  <Stack key={index} direction={{ xs: 'column', sm: 'row' }} spacing={2} sx={{ marginTop: '.4rem' }}>
-                    <FormControl fullWidth>
-                      {/* <TextField
-                        name="svp"
-                        label="Bilan SVP"
-                        aria-label="maximum height"
-                        onChange={(e) => handleBilanChange(index, e)}
-                      /> */}
-                      {/* <FormControl fullWidth> */}
-                      {isOther ? (
-                        <TextField
-                          name="svp"
-                          label="Bilan SVP"
-                          value={svp}
-                          onChange={(e) => handleBilanChange(index, e)}
+              <Grid container spacing={{ xs: 2, md: 3 }} columns={{ xs: 4, sm: 8, md: 12 }}>
+                <Grid item xs={2} sm={4} md={4}>
+                  <FormGroup>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={FNS}
+                          onChange={(e) => setFNS(e.target.checked)}
+                          inputProps={{ 'aria-label': 'controlled' }}
                         />
-                      ) : (
-                        <Autocomplete
-                          disablePortal
-                          value={svp}
-                          onChange={(e, value) => handleSVPChange(index, e, value)}
-                          options={BilanList}
-                          // sx={{ width: 300 }}
-                          defaultValue={''}
-                          renderInput={(params) => <TextField name="svp" {...params} label="Bilan" />}
+                      }
+                      label="FNS"
+                    />
+                  </FormGroup>
+                  <FormGroup>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={TP}
+                          onChange={(e) => setTP(e.target.checked)}
+                          inputProps={{ 'aria-label': 'controlled' }}
                         />
-                      )}
-                    </FormControl>
-                    <FormGroup>
-                      <FormControlLabel
-                        control={
-                          <Switch
-                            checked={isOther}
-                            onChange={(e) => handleTypeChange(index, e)}
-                            name="isOther"
-                            inputProps={{ 'aria-label': 'controlled' }}
-                          />
-                        }
-                        label="Autre"
-                      />
-                    </FormGroup>
-                    {/* </FormControl> */}
-                    {/* <Select
-                        defaultValue="FNS"
-                        name="svp"
-                        value={svp}
-                        label="Bilan SVP"
-                        onChange={(e) => handleBilanChange(index, e)}
-                      >
-                        {BilanList.map((item, index) => (
-                          <MenuItem key={index} value={item}>
-                            {item}
-                          </MenuItem>
-                        ))}
-                      </Select> */}
-
-                    {bilan.length !== 1 && (
-                      <IconButton aria-label="delete" size="large" onClick={removeBilanField}>
-                        <DeleteIcon />
-                      </IconButton>
-                    )}
-                  </Stack>
-                );
-              })}
-              <Box>
-                <IconButton aria-label="add" size="large" onClick={addBilanField}>
-                  <AddCircleIcon />
-                </IconButton>
-              </Box>
-
+                      }
+                      label="TP"
+                    />
+                  </FormGroup>
+                  <FormGroup>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={LDH}
+                          onChange={(e) => setLDH(e.target.checked)}
+                          inputProps={{ 'aria-label': 'controlled' }}
+                        />
+                      }
+                      label="LDH"
+                    />
+                  </FormGroup>
+                  <FormGroup>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={INR}
+                          onChange={(e) => setINR(e.target.checked)}
+                          inputProps={{ 'aria-label': 'controlled' }}
+                        />
+                      }
+                      label="INR"
+                    />
+                  </FormGroup>
+                  <FormGroup>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={phosphoremie}
+                          onChange={(e) => setPhosphoremie(e.target.checked)}
+                          inputProps={{ 'aria-label': 'controlled' }}
+                        />
+                      }
+                      label="Phosphorémie"
+                    />
+                  </FormGroup>
+                  <FormGroup>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={PTH}
+                          onChange={(e) => setPTH(e.target.checked)}
+                          inputProps={{ 'aria-label': 'controlled' }}
+                        />
+                      }
+                      label="PTH"
+                    />
+                  </FormGroup>
+                  <FormGroup>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={creatinine}
+                          onChange={(e) => setCreatinine(e.target.checked)}
+                          inputProps={{ 'aria-label': 'controlled' }}
+                        />
+                      }
+                      label="Créatinine"
+                    />
+                  </FormGroup>
+                  <FormGroup>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={TGO}
+                          onChange={(e) => setTGO(e.target.checked)}
+                          inputProps={{ 'aria-label': 'controlled' }}
+                        />
+                      }
+                      label="TGO, TGO"
+                    />
+                  </FormGroup>
+                </Grid>
+                <Grid item xs={2} sm={4} md={4}>
+                  <FormGroup>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={TCK}
+                          onChange={(e) => setTCK(e.target.checked)}
+                          inputProps={{ 'aria-label': 'controlled' }}
+                        />
+                      }
+                      label="TCK"
+                    />
+                  </FormGroup>
+                  <FormGroup>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={CPK}
+                          onChange={(e) => setCPK(e.target.checked)}
+                          inputProps={{ 'aria-label': 'controlled' }}
+                        />
+                      }
+                      label="CPK"
+                    />
+                  </FormGroup>
+                  <FormGroup>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={VS}
+                          onChange={(e) => setVS(e.target.checked)}
+                          inputProps={{ 'aria-label': 'controlled' }}
+                        />
+                      }
+                      label="VS"
+                    />
+                  </FormGroup>
+                  <FormGroup>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={CRP}
+                          onChange={(e) => setCRP(e.target.checked)}
+                          inputProps={{ 'aria-label': 'controlled' }}
+                        />
+                      }
+                      label="CRP"
+                    />
+                  </FormGroup>
+                  <FormGroup>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={HDL}
+                          onChange={(e) => setHDL(e.target.checked)}
+                          inputProps={{ 'aria-label': 'controlled' }}
+                        />
+                      }
+                      label="HDL, LDL"
+                    />
+                  </FormGroup>
+                  <FormGroup>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={cholesterol}
+                          onChange={(e) => setCholesterol(e.target.checked)}
+                          inputProps={{ 'aria-label': 'controlled' }}
+                        />
+                      }
+                      label="Cholestérol T, TG"
+                    />
+                  </FormGroup>
+                  <FormGroup>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={Mg}
+                          onChange={(e) => setMg(e.target.checked)}
+                          inputProps={{ 'aria-label': 'controlled' }}
+                        />
+                      }
+                      label="Mg"
+                    />
+                  </FormGroup>
+                  <FormGroup>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={GT}
+                          onChange={(e) => setGT(e.target.checked)}
+                          inputProps={{ 'aria-label': 'controlled' }}
+                        />
+                      }
+                      label="&gamma;GT"
+                    />
+                  </FormGroup>
+                </Grid>
+                <Grid item xs={2} sm={4} md={4}>
+                  <FormGroup>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={ionogramme}
+                          onChange={(e) => setIonogramme(e.target.checked)}
+                          inputProps={{ 'aria-label': 'controlled' }}
+                        />
+                      }
+                      label="Ionogramme"
+                    />
+                  </FormGroup>
+                  <FormGroup>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={PAL}
+                          onChange={(e) => setPAL(e.target.checked)}
+                          inputProps={{ 'aria-label': 'controlled' }}
+                        />
+                      }
+                      label="PAL"
+                    />
+                  </FormGroup>
+                  <FormGroup>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={calcemie}
+                          onChange={(e) => setCalcemie(e.target.checked)}
+                          inputProps={{ 'aria-label': 'controlled' }}
+                        />
+                      }
+                      label="Calcémie"
+                    />
+                  </FormGroup>
+                  <FormGroup>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={TSH}
+                          onChange={(e) => setTSH(e.target.checked)}
+                          inputProps={{ 'aria-label': 'controlled' }}
+                        />
+                      }
+                      label="TSH, T3, T4"
+                    />
+                  </FormGroup>{' '}
+                  <FormGroup>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={uree}
+                          onChange={(e) => setUree(e.target.checked)}
+                          inputProps={{ 'aria-label': 'controlled' }}
+                        />
+                      }
+                      label="Urée"
+                    />
+                  </FormGroup>
+                  <FormGroup>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={electrophorese}
+                          onChange={(e) => setElectrophorese(e.target.checked)}
+                          inputProps={{ 'aria-label': 'controlled' }}
+                        />
+                      }
+                      label="Electrophorèse des proteines"
+                    />
+                  </FormGroup>
+                  <FormGroup>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={FAN}
+                          onChange={(e) => setFAN(e.target.checked)}
+                          inputProps={{ 'aria-label': 'controlled' }}
+                        />
+                      }
+                      label="FAN"
+                    />
+                  </FormGroup>
+                </Grid>
+              </Grid>
+              <FormControl>
+                <TextField
+                  name="otherBilan"
+                  label="Autre"
+                  value={otherBilan}
+                  onChange={(e) => setOtherBilan(e.target.value)}
+                />
+              </FormControl>
               <PDFDownloadLink
                 document={<Bilan firstName={patient.firstName} lastName={patient.lastName} age={age} bilan={bilan} />}
                 fileName="bilan"

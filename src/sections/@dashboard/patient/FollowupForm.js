@@ -111,6 +111,7 @@ export default function FollowupForm({ id, firstName, lastName, diagnosisList, d
       const pricesArr = data.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
       setConsultationPrice(pricesArr[0].consultation);
       setEegPrice(pricesArr[0].eeg);
+      console.log('the prices', pricesArr);
       setEmgPrice(pricesArr[0].emg);
     };
     getPrices();
