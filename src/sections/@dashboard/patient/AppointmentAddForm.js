@@ -113,7 +113,13 @@ export default function AppointmentAddForm({ firstName, lastName }) {
             />
           </FormControl>
 
-          <Button fullWidth size="large" onClick={createAppointment} variant="contained">
+          <Button
+            fullWidth
+            size="large"
+            onClick={createAppointment}
+            variant="contained"
+            disabled={appointmentDate === ''}
+          >
             Ajouter Rendez-vous
           </Button>
         </Stack>

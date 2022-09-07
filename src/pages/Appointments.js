@@ -114,7 +114,7 @@ export default function Appointments() {
 
   const handleSelectAllClick = (event) => {
     if (event.target.checked) {
-      const newSelecteds = USERLIST.map((n) => n.name);
+      const newSelecteds = appointments.map((n) => n.name);
       setSelected(newSelecteds);
       return;
     }
@@ -261,7 +261,7 @@ export default function Appointments() {
           <TablePagination
             rowsPerPageOptions={[5, 10, 25]}
             component="div"
-            count={USERLIST.length}
+            count={appointments.length}
             rowsPerPage={rowsPerPage}
             page={page}
             onPageChange={handleChangePage}

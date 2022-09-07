@@ -7,12 +7,12 @@ import { getFirestore } from '@firebase/firestore';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: 'AIzaSyCbOdssJzLaRQvuFeGZJFem_aCOi69iVsE',
-  authDomain: 'clinicoapp-3717c.firebaseapp.com',
-  projectId: 'clinicoapp-3717c',
-  storageBucket: 'clinicoapp-3717c.appspot.com',
-  messagingSenderId: '351314037625',
-  appId: '1:351314037625:web:0ba1e4810305c274f6bda8',
+  apiKey: 'AIzaSyBThoJqMEAGISaCEFaOnA0AqXkSQwVw_8c',
+  authDomain: 'cabinet-neuro.firebaseapp.com',
+  projectId: 'cabinet-neuro',
+  storageBucket: 'cabinet-neuro.appspot.com',
+  messagingSenderId: '326661608959',
+  appId: '1:326661608959:web:38d7009a077d89ea7483ca',
 };
 
 // Initialize Firebase
