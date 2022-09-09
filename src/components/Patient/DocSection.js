@@ -39,6 +39,7 @@ import CertificatMedical from '../documents/CertificatMedical';
 import Bilan from '../documents/Bilan';
 import Orientation from '../documents/Orientation';
 import BilanSelect from '../hook-form/BilanSelect';
+import { drugListStatic } from '../../utils/drugs';
 
 const Alert = forwardRef((props, ref) => {
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
@@ -123,7 +124,10 @@ function DocSection({ id, patient }) {
     const getPatients = async () => {
       const data = await getDocs(collection(db, 'drugs'));
       console.log(data.docs);
-      setDrugList(data.docs.map((doc) => doc.data().drugDesc));
+      const drugArr = data.docs.map((doc) => doc.data().drugDesc);
+      // console.log(drugArr);
+      const newDrugList = [...drugListStatic, ...drugArr];
+      setDrugList(newDrugList);
     };
     getPatients();
   }, []);

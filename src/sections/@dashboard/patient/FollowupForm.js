@@ -41,6 +41,7 @@ import { FormProvider, RHFTextField } from '../../../components/hook-form';
 import RHFSelect from '../../../components/hook-form/RHFSelect';
 import { db } from '../../../firebase-config';
 import { useAuth } from '../../../contexts/AuthContext';
+import { drugListStatic } from '../../../utils/drugs';
 
 const Alert = forwardRef((props, ref) => {
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
@@ -121,7 +122,8 @@ export default function FollowupForm({ id, firstName, lastName, diagnosisList, d
     const getPatients = async () => {
       const data = await getDocs(collection(db, 'drugs'));
       console.log(data.docs);
-      setDrugList(data.docs.map((doc) => doc.data().drugDesc));
+      const newDrugList = [...drugListStatic, ...data.docs.map((doc) => doc.data().drugDesc)];
+      setDrugList(newDrugList);
     };
     getPatients();
   }, []);

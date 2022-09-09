@@ -93,7 +93,7 @@ export default function Appointments() {
       const qUser = currentUser ? query(usersRef, where('email', '==', currentUser.email)) : null;
       const dataUser = await getDocs(qUser);
       const profiles = dataUser.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
-      const role = profiles[0].firstName ? profiles[0].role : '';
+      const role = profiles[0].role ? profiles[0].role : '';
 
       const q =
         role === 'doctor'

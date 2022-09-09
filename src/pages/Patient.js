@@ -18,7 +18,7 @@ import {
   TableContainer,
   TablePagination,
 } from '@mui/material';
-import { collection, getDocs, addDoc } from '@firebase/firestore';
+import { collection, getDocs, addDoc, query, where } from '@firebase/firestore';
 // components
 import Page from '../components/Page';
 import Label from '../components/Label';
@@ -30,6 +30,8 @@ import SearchNotFound from '../components/SearchNotFound';
 import USERLIST from '../_mock/user';
 import { PatientListHead, PatientListToolbar, PatientMoreMenu } from '../sections/@dashboard/patient';
 import { db } from '../firebase-config';
+import { useAuth } from '../contexts/AuthContext';
+
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
@@ -86,7 +88,23 @@ export default function Patient() {
   const [rowsPerPage, setRowsPerPage] = useState(5);
 
   const [patients, setPatients] = useState([]);
+  const [userRole, setUserRole] = useState('');
+
+  const { currentUser } = useAuth();
+
   const patientRef = collection(db, 'patients');
+  const usersRef = collection(db, 'users');
+
+  useEffect(() => {
+    const getUsers = async () => {
+      const qUser = currentUser ? query(usersRef, where('email', '==', currentUser.email)) : null;
+      const dataUser = await getDocs(qUser);
+      const profiles = dataUser.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
+      const role = profiles[0].role ? profiles[0].role : '';
+      setUserRole(role);
+    };
+    getUsers();
+  }, []);
 
   useEffect(() => {
     const getPatients = async () => {
@@ -229,7 +247,7 @@ export default function Patient() {
                         </TableCell> */}
 
                         <TableCell align="right">
-                          <PatientMoreMenu id={id} />
+                          <PatientMoreMenu role={userRole} id={id} />
                         </TableCell>
                       </TableRow>
                     );

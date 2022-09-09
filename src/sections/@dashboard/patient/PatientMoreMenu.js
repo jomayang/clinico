@@ -13,7 +13,7 @@ const Alert = forwardRef((props, ref) => {
   return <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />;
 });
 
-export default function PatientMoreMenu({ id }) {
+export default function PatientMoreMenu({ id, role }) {
   const ref = useRef(null);
   const [isOpen, setIsOpen] = useState(false);
 
@@ -54,12 +54,16 @@ export default function PatientMoreMenu({ id }) {
         anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
         transformOrigin={{ vertical: 'top', horizontal: 'right' }}
       >
-        <MenuItem sx={{ color: 'text.secondary' }} onClick={removePatient}>
-          <ListItemIcon>
-            <Iconify icon="eva:trash-2-outline" width={24} height={24} />
-          </ListItemIcon>
-          <ListItemText primary="Delete" primaryTypographyProps={{ variant: 'body2' }} />
-        </MenuItem>
+        {role && role === 'admin' ? (
+          <MenuItem sx={{ color: 'text.secondary' }} onClick={removePatient}>
+            <ListItemIcon>
+              <Iconify icon="eva:trash-2-outline" width={24} height={24} />
+            </ListItemIcon>
+            <ListItemText primary="Delete" primaryTypographyProps={{ variant: 'body2' }} />
+          </MenuItem>
+        ) : (
+          <></>
+        )}
 
         <MenuItem component={RouterLink} to={`/dashboard/patient/${id}`} sx={{ color: 'text.secondary' }}>
           <ListItemIcon>

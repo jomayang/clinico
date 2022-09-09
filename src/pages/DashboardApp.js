@@ -48,6 +48,8 @@ import { db } from '../firebase-config';
 import { PatientListHead, PatientListToolbar } from '../sections/@dashboard/patient';
 import SearchNotFound from '../components/SearchNotFound';
 import Scrollbar from '../components/Scrollbar';
+import { drugListStatic } from '../utils/drugs';
+
 // ----------------------------------------------------------------------
 
 const Alert = forwardRef((props, ref) => <MuiAlert elevation={6} ref={ref} variant="filled" {...props} />);
@@ -123,8 +125,10 @@ export default function DashboardApp() {
     const getDrugs = async () => {
       const data = await getDocs(collection(db, 'drugs'));
       const drugArr = data.docs.map((doc) => doc.data().drugDesc);
-      console.log(drugArr);
-      setDrugList(drugArr);
+      // console.log(drugArr);
+      const newDrugList = [...drugListStatic, ...drugArr];
+      setDrugList(newDrugList);
+      // setDrugList(drugArr);
     };
     getDrugs();
   }, []);
