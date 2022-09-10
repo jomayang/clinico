@@ -135,12 +135,16 @@ export default function DashboardApp() {
 
   useEffect(() => {
     const getPrices = async () => {
-      const data = await getDocs(collection(db, 'prices'));
-      const pricesArr = data.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
-      setConsultationPrice(pricesArr[0].consultation);
-      setEegPrice(pricesArr[0].eeg);
-      setEmgPrice(pricesArr[0].emg);
-      setId(pricesArr[0].id);
+      try {
+        const data = await getDocs(collection(db, 'prices'));
+        const pricesArr = data.docs.map((doc) => ({ ...doc.data(), id: doc.id }));
+        setConsultationPrice(pricesArr[0].consultation);
+        setEegPrice(pricesArr[0].eeg);
+        setEmgPrice(pricesArr[0].emg);
+        setId(pricesArr[0].id);
+      } catch (e) {
+        console.log(e);
+      }
     };
     getPrices();
   }, []);
@@ -463,7 +467,7 @@ export default function DashboardApp() {
                     name="consultation-price"
                     label="Prix de consultation"
                     value={consultationPrice}
-                    onChange={(e) => setConsultationPrice(e.target.value)}
+                    onChange={(e) => setConsultationPrice(+e.target.value)}
                   />
                 </FormControl>
                 <FormControl fullWidth sx={{ marginTop: '1rem', marginBottom: '1rem' }}>
@@ -471,7 +475,7 @@ export default function DashboardApp() {
                     name="eeg-price"
                     label="Prix d'EEG"
                     value={eegPrice}
-                    onChange={(e) => setEegPrice(e.target.value)}
+                    onChange={(e) => setEegPrice(+e.target.value)}
                   />
                 </FormControl>
                 <FormControl fullWidth sx={{ marginTop: '1rem', marginBottom: '1rem' }}>
@@ -479,7 +483,7 @@ export default function DashboardApp() {
                     name="emg-price"
                     label="Prix d'EMG"
                     value={emgPrice}
-                    onChange={(e) => setEmgPrice(e.target.value)}
+                    onChange={(e) => setEmgPrice(+e.target.value)}
                   />
                 </FormControl>
                 <Button fullWidth size="large" onClick={updatePrices} variant="contained">
